@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import ListSection from "@/components/sections/ListSection";
-import ImageBlock from "@/components/sections/ImageBlock";
+import Image from "next/image";
 import { programaPlayaOrganizadaContent } from "@/content/programa-playa-organizada";
 
 export const metadata: Metadata = {
@@ -14,16 +14,21 @@ export default function ProgramaPlayaOrganizadaPage() {
     <>
       <ListSection
         theme="white"
-        title={programaPlayaOrganizadaContent.list.title}
+        title="Programa Playa Organizada"
+        headingLevel={1}
         layout={programaPlayaOrganizadaContent.list.layout}
         items={programaPlayaOrganizadaContent.list.items}
       />
       <section className="theme-light bg-background">
         <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-          <ImageBlock
-            url={programaPlayaOrganizadaContent.mapImage.url}
+          <Image
+            src={programaPlayaOrganizadaContent.mapImage.url}
             alt={programaPlayaOrganizadaContent.mapImage.alt}
-            className="aspect-[21/9] rounded-lg"
+            width={1600}
+            height={1000}
+            unoptimized
+            referrerPolicy="no-referrer"
+            className="h-auto w-full"
           />
         </div>
       </section>

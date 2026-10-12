@@ -48,3 +48,7 @@ next-env.d.ts
 
 # one-time extraction output used to author src/content/*.ts by hand
 /scripts/out/
+
+# Prepared from the map source before dev/build; never commit generated tiles.
+/public/mapa/app/
+/public/brand/caribbean-guard.png

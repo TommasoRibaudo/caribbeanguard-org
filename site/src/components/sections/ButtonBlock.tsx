@@ -29,7 +29,7 @@ export default function ButtonBlock({
       href={link}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      className={`inline-block rounded-md px-6 py-3 text-sm font-semibold whitespace-nowrap transition-colors ${VARIANT_CLASSES[variant]} ${className}`}
+      className={`button-block inline-block rounded-full px-6 py-3 text-sm font-semibold whitespace-nowrap transition-colors ${VARIANT_CLASSES[variant]} ${className}`}
     >
       {text}
     </Link>

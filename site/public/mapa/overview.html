@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Playas del Caribe Sur</title>
+<link rel="stylesheet" href="app/vendor/leaflet.css">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Arial,sans-serif;color:#233c49;background:#eef5f7}
+body{display:flex;flex-direction:column}#map{flex:1;min-height:0;background:#174451}
+.leaflet-container{font:14px/1.4 Arial,sans-serif}.leaflet-control-attribution{font-size:10px!important}
+.beach-pin{background:#fff;border-radius:50%;box-shadow:0 2px 8px #102f5266;display:grid;place-items:center;color:#176f9d;font-weight:bold;font-size:12px}
+.beach-pin:focus-visible{outline:3px solid #176f9d;outline-offset:4px}
+.beach-label{background:#fff;border:0;box-shadow:0 2px 10px #102f5233;color:#233c49;padding:5px 9px;font-size:13px;font-weight:600}
+.beach-label:before{display:none}nav{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 20px;padding:12px 16px;background:#eef5f7}
+nav a{min-height:36px;display:flex;align-items:center;font-size:14px;color:#175e84;text-underline-offset:4px}
+.error{position:absolute;top:20px;left:20px;right:20px;padding:20px;background:white;z-index:1000}
+@media(max-width:600px){.beach-label{display:none}nav{gap:0 14px;padding:10px 12px}nav a{font-size:12px;min-height:44px}}
+</style>
+</head>
+<body>
+<div id="map" role="region" aria-label="Ubicación general de las playas"></div>
+<nav aria-label="Abrir la guía de una playa" id="beaches"></nav>
+<noscript><p>Abre el <a href="/mapa" target="_top">mapa completo</a> para consultar las playas.</p></noscript>
+<script src="app/vendor/leaflet.js"></script>
+<script>
+async function startOverview(){
+  const response=await fetch('app/overview-places.json');
+  if(!response.ok) throw new Error('Beach data unavailable');
+  const places=await response.json();
+  const map=L.map('map',{scrollWheelZoom:false,zoomControl:false,dragging:false,keyboard:false,touchZoom:false,doubleClickZoom:false,boxZoom:false,zoomSnap:0.25,minZoom:10,maxZoom:15});
+  const tiles=L.tileLayer('app/tiles/{z}/{x}/{y}.jpg',{minZoom:10,maxNativeZoom:17,maxZoom:18,attribution:'Caribbean Guard · Imágenes satelitales'}).addTo(map);
+  let fallbackShown=false;
+  tiles.on('tileerror',()=>{
+    if(fallbackShown)return;fallbackShown=true;
+    const note=document.createElement('p');note.className='error';note.textContent='No se pudo cargar parte del mapa. Usa los enlaces de playas para abrir la guía.';document.body.append(note);
+  });
+  map.attributionControl.setPrefix('').addAttribution('<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>');
+  const list=document.getElementById('beaches');
+  places.forEach((place,i)=>{
+    const marker=L.marker(place.at,{icon:L.divIcon({className:'beach-pin',html:String(i+1),iconSize:[28,28],iconAnchor:[14,14]}),title:place.name,alt:place.name,keyboard:true});
+    // Leaflet creates the marker element only after the map has its first view.
+    marker.on('add',()=>marker.getElement()?.setAttribute('aria-label',place.name));
+    marker.addTo(map);
+    marker.bindTooltip(place.name,{permanent:true,direction:i%2?'bottom':'top',offset:[0,i%2?16:-16],className:'beach-label'});
+    marker.on('click',()=>{window.top.location.href=place.href;});
+    const link=document.createElement('a');link.href=place.href;link.target='_top';link.textContent=`${i+1}. ${place.name}`;list.append(link);
+  });
+  const bounds=L.latLngBounds(places.map(p=>p.at));
+  function fit(){map.invalidateSize();map.fitBounds(bounds,{padding:[35,65],animate:false});}
+  new ResizeObserver(fit).observe(document.getElementById('map'));
+  fit();
+}
+startOverview().catch(error=>{
+  console.error('Beach overview failed to initialize',error);
+  const note=document.createElement('p');note.className='error';note.append('No se pudo cargar el mapa. ');
+  const link=document.createElement('a');link.href='/mapa';link.target='_top';link.textContent='Abrir mapa completo';note.append(link);document.body.append(note);
+});
+</script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 export const nuestroTrabajo1Content = {
   hero: {
-    heading: '<h2 style="white-space:pre-wrap;">Salvando vidas y empoderando nuestra comunidad acuática.</h2>',
+    heading: '<h1>Salvando vidas y fortaleciendo nuestra comunidad acuática.</h1>',
   },
   list: {
-    title: "Nuestros Trabajo",
+    title: "Nuestro trabajo",
     layout: "simple" as const,
     items: [
       {

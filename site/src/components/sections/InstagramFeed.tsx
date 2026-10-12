@@ -39,7 +39,6 @@ export default function InstagramFeed({
 
   useEffect(() => {
     if (!resolvedUrl) {
-      setFailed(true);
       return;
     }
 
@@ -61,7 +60,7 @@ export default function InstagramFeed({
     };
   }, [resolvedUrl]);
 
-  if (failed || (posts && posts.length === 0)) {
+  if (!resolvedUrl || failed || (posts && posts.length === 0)) {
     return (
       <section className={`theme-${theme} bg-background text-foreground`}>
         <div className="mx-auto max-w-5xl px-6 py-16 text-center md:py-24">

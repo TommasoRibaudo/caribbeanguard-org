@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node ../tools/prepare_site_assets.mjs",
     "dev": "next dev",
+    "prebuild": "node ../tools/prepare_site_assets.mjs",
     "build": "next build",
+    "test:search": "node --test tests/search.test.mjs",
+    "test:export": "node --test tests/site-export.test.mjs",
     "start": "next start",
     "lint": "eslint",
     "extract:content": "node scripts/extract-content.mjs",

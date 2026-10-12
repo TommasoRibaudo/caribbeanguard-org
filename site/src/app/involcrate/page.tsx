@@ -14,7 +14,7 @@ export default function InvolcratePage() {
     <>
       <RichTextSection theme="light" html={involcrateContent.intro.html} />
       <GalleryGrid theme="light" images={involcrateContent.gallery} />
-      <RichTextSection theme="light" html={involcrateContent.contact.html} />
+      <div id="contacto"><RichTextSection theme="light" html={involcrateContent.contact.html} /></div>
     </>
   );
 }
