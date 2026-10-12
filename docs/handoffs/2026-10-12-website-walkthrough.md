@@ -65,6 +65,14 @@ A separate directory containing only tracked map inputs and no tile cache succes
 - No payment, email, telephone call or social message was submitted during testing. External services and physical mobile Safari/Android devices were not end-to-end tested; phone checks used browser viewport emulation.
 - No merge or production deployment is authorized by this handoff.
 
+## Preview build correction
+
+The automatic preview for commit `69b09f4` failed before tile generation: Vercel's uv-managed Python rejected the global pip install with `externally-managed-environment` (PEP 668). The build now creates `.venv-tiles`, installs the pinned Pillow dependency through that environment's Python, and runs tile generation with the same interpreter. The environment is ignored by Git. This follows Python's documented virtual-environment workflow and does not bypass system-package protection.
+
+Verification uses a fresh local virtual environment, the tile generator, the website build and export checks. Windows uses `.venv-tiles/Scripts/python.exe`; Vercel uses `.venv-tiles/bin/python`. Hosted confirmation belongs to the automatic PR check. No manual deployment or merge is performed; the owner controls merge and production release.
+
+Reference: https://docs.python.org/3/library/venv.html
+
 ## Files touched
 
 Website routes, shared layout/search/media components, page styles and source heading/alt-text corrections under `site/src`; `site/tests/site-export.test.mjs`; site scripts and lint configuration; `tools/prepare_site_assets.mjs`; `tools/requirements-tiles.txt`; `vercel.json`. The earlier design handoff and typography guidelines describe the complete redesign scope.
