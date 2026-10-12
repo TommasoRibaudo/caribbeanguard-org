@@ -1,50 +1,67 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Bing tile cache and the mosaic built from it. 36 MB, and entirely reproducible
+# by rerunning tools/georef2.py. It is a cache, not a source.
+tools/tilecache/
+tools/ref_mosaic.jpg
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Proof sheets and debug renders. Regenerate with validate.py / residual.py /
+# extract_annotations.py. Kept out because they are large and derived, but note
+# that annot_check.jpg and georef_check*.jpg are the evidence behind the
+# georeference, so regenerate them before trusting any change to it.
+tools/*_check.jpg
+tools/*_preview.png
+tools/dbg_*.png
+tools/cmp_*.jpg
 
-# testing
-/coverage
+# Solved transforms and control points. Derived from refine.py / georef_annot.py.
+# georef.json is deliberately NOT ignored: web/index.html's bounds come from it
+# and the numbers need to be reviewable in the diff.
+tools/*.npy
+tools/georef_annot.json
 
-# next.js
-/.next/
-/out/
+# Saved copies of the live Squarespace site, 2.6 MB of framework noise. They are
+# a snapshot of somebody else's site, refetchable, and they go stale.
+docs/site-revamp/_*.html
 
-# production
-/build
+# Source imagery lives in Downloads and is far too large to version.
+*.psd
 
-# misc
 .DS_Store
-*.pem
+Thumbs.db
+node_modules/
+dist/
+tools/*check*.jpg
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# Python bytecode and remaining debug renders from the failed georeferencing runs
+__pycache__/
+*.pyc
+tools/align_overlay.png
+tools/mask_ref.png
+tools/dbg_*.jpg
+gl.json
 
-# env files (can opt-in for committing if needed)
-.env*
+# Extracted copy: derived from the saved Squarespace HTML, which is itself
+# ignored. Regenerate with tools/extract_site_copy.py.
+tools/site_copy.json
+tools/copy_preview.txt
 
-# vercel
-.vercel
+# The map is copied into the site tree at build time so the whole thing is
+# navigable locally; in production it deploys separately.
+site/mapa/app/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Rendered annotated sheets. Four PNGs, 9.9 MB, regenerated in one command by
+# tools/render_annotated.py from coastline.json plus the tile cache. Kept out of
+# a PUBLIC repo for the size; coastline.json IS tracked, because it is the
+# geometry the sheets and the map both depend on and it needs to be reviewable.
+# They live in out/ and NOT in web/, because web/ is dragged into Cloudflare
+# Pages whole and these are unsigned drafts.
+out/
 
-# raw Squarespace export / reference dumps (one-time source material, not build input)
-/docs/source-material/
-
-# staged media pulled from Squarespace CDN before manual upload to Drive
-/media/
-
-# one-time extraction output used to author src/content/*.ts by hand
-/scripts/out/
+# The satellite tile pyramid. 2,152 files and ~20 MB, rebuilt in one command by
+# tools/build_tiles.py from the z17 cache plus a fetch of the low zooms. A PUBLIC
+# repository is the wrong place to keep twenty megabytes of third-party imagery,
+# and the build is deterministic, so the bytes are not worth versioning.
+# NOTE: docs/deploy-cloudflare-pages.md opens by telling a deployer to run that
+# command first, because deploying without it yields a map with no imagery and
+# no warning. Keep those two facts in step.
+web/tiles/
+dist-map/

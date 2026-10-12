@@ -1,0 +1,432 @@
+{
+ "type": "FeatureCollection",
+ "properties": {
+  "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+  "extracted_by": "tools/extract_annotations.py",
+  "georeference_residual_m": 1.2142308950424194,
+  "station_layer": "Rescue stations are the ONE feature class with a second record elsewhere: POSTS in web/index.html carries their names, hours and equipment copy, which a machine reading a graphic cannot produce. The GEOMETRY HERE IS AUTHORITATIVE and the map joins on `id`; the coordinates in POSTS are a fallback used only when this fetch fails, and the map logs a warning if the two disagree. Move a station here, not there.",
+  "warning": "Machine-read off a published graphic. Every feature must be confirmed and dated by Caribbean Guard before it is shown to the public as safety guidance.",
+  "full_map_reconciliation": {
+   "source": "08102026_FULL MAP DRAFT.pdf, page 1 (user supplied)",
+   "geographic_positions_changed": false,
+   "note": "Four stations matched visually by access roads, bay and headland context. The new PDF supplies numbers and proposal status. The shaded bay is explicitly labeled strong currents. Remaining PDF features are retained in full-map-source.json in page coordinates; they are not registered GPS hazards."
+  }
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "id": "cg:rip/fdae545d",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.717995,
+      9.645262
+     ],
+     [
+      -82.717682,
+      9.64541
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 38,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/c06fa82e",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.711159,
+      9.642036
+     ],
+     [
+      -82.711105,
+      9.642629
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 66,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/be409201",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.710098,
+      9.641719
+     ],
+     [
+      -82.709808,
+      9.641909
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 38,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/ee5e916f",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.715561,
+      9.642565
+     ],
+     [
+      -82.715767,
+      9.643072
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 60,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/e4a50066",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.707962,
+      9.640396
+     ],
+     [
+      -82.707199,
+      9.640799
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 94,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/3926a649",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.710403,
+      9.641581
+     ],
+     [
+      -82.710175,
+      9.641729
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 29,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/da5a20f0",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.711372,
+      9.641772
+     ],
+     [
+      -82.711311,
+      9.642046
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 31,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/9d46f371",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.724022,
+      9.644067
+     ],
+     [
+      -82.724144,
+      9.644426
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 41,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:rip/c1013f98",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.723961,
+      9.643739
+     ],
+     [
+      -82.72406,
+      9.644014
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "rip_current",
+    "length_m": 32,
+    "direction": "perpendicular to the beach, seaward. Position is Caribbean Guard's; the exact bearing on their sheet was not machine-readable and is not claimed here.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:area/d5a5d841",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -82.717865,
+       9.643644
+      ],
+      [
+       -82.717918,
+       9.643464
+      ],
+      [
+       -82.71788,
+       9.643336
+      ],
+      [
+       -82.717789,
+       9.643199
+      ],
+      [
+       -82.7173,
+       9.642766
+      ],
+      [
+       -82.717125,
+       9.642734
+      ],
+      [
+       -82.716782,
+       9.64248
+      ],
+      [
+       -82.716537,
+       9.642363
+      ],
+      [
+       -82.716278,
+       9.642289
+      ],
+      [
+       -82.715927,
+       9.642279
+      ],
+      [
+       -82.715805,
+       9.64249
+      ],
+      [
+       -82.715782,
+       9.642734
+      ],
+      [
+       -82.715874,
+       9.642977
+      ],
+      [
+       -82.716034,
+       9.643146
+      ],
+      [
+       -82.716675,
+       9.643432
+      ],
+      [
+       -82.71714,
+       9.643866
+      ],
+      [
+       -82.717323,
+       9.643898
+      ],
+      [
+       -82.717514,
+       9.643866
+      ],
+      [
+       -82.717697,
+       9.643792
+      ],
+      [
+       -82.717865,
+       9.643644
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "kind": "strong_current_area",
+    "area_m2": 23441,
+    "note": "Red shaded polygon with no legend entry. Could be a hazard zone or a designated safe swimming zone. MUST NOT be rendered with a status until confirmed.",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null,
+    "classification_source": "08102026_FULL MAP DRAFT.pdf, page 1 (user supplied)",
+    "source_label": "Area de Fuertes Corrientes / Area of Strong Currents",
+    "needs_confirmation": true
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:station/est1",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.719002,
+     9.644744
+    ]
+   },
+   "properties": {
+    "kind": "rescue_station",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null,
+    "source_number": "3.2",
+    "proposed": false,
+    "status": "shown_existing",
+    "classification_source": "08102026_FULL MAP DRAFT.pdf, page 1 (user supplied)",
+    "needs_confirmation": true
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:station/est2",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.718094,
+     9.643326
+    ]
+   },
+   "properties": {
+    "kind": "rescue_station",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null,
+    "source_number": "3.3",
+    "proposed": true,
+    "status": "proposed",
+    "classification_source": "08102026_FULL MAP DRAFT.pdf, page 1 (user supplied)",
+    "needs_confirmation": true
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:station/est3",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.710732,
+     9.641369
+    ]
+   },
+   "properties": {
+    "kind": "rescue_station",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null,
+    "source_number": "3.5",
+    "proposed": false,
+    "status": "shown_existing",
+    "classification_source": "08102026_FULL MAP DRAFT.pdf, page 1 (user supplied)",
+    "needs_confirmation": true
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "cg:station/est4",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.708778,
+     9.64029
+    ]
+   },
+   "properties": {
+    "kind": "rescue_station",
+    "source": "https://www.caribbeanguard.org/programa-playa-organizada (Annotated Base Map V5.png)",
+    "authored": "sheet",
+    "reviewed": null,
+    "source_number": "3.6",
+    "proposed": false,
+    "status": "shown_existing",
+    "classification_source": "08102026_FULL MAP DRAFT.pdf, page 1 (user supplied)",
+    "needs_confirmation": true
+   }
+  }
+ ]
+}

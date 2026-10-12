@@ -1,45 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Caribbean Guard coastal safety map
 
-## Getting Started
+A bilingual, mobile-first beach guide for Puerto Viejo to Manzanillo, Costa Rica. The interface presents beach guidance, lifeguard information, rescue-equipment annotations and a regional forecast. It does not report observed live swimming conditions.
 
-First, run the development server:
+## Start here
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- [Current release and verification](docs/handoffs/2026-09-22-map-production-release.md)
+- [Deployment and rollback](docs/deploy.md)
+- [Interface audit and brand system](docs/design/coastal-interface-audit.md)
+- [Icon vocabulary and full-map source review](docs/design/icon-system-and-source-review.md)
+
+## Run and validate the map
+
+```powershell
+npm ci
+npm run dev:map
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://127.0.0.1:5174/`. The map runs from `web/`. For phone testing on the same network, run `npm run dev:map -- --host 0.0.0.0` and use the printed network URL.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+npm run check:map
+npm run build:map
+```
 
-## Instagram feed (Behold.so)
+Packaging writes `dist-map/` and requires locally generated imagery. `web/tiles/` is excluded from Git. On a fresh checkout, run `python tools/build_tiles.py` before packaging or deploying; this requires its Python dependencies and network access. The default `npm run dev` and `npm run build` target the organization website in `site/`, not the map.
 
-The homepage Instagram feed (`src/components/sections/InstagramFeed.tsx`) is a live feed, not static embeds. It reads a Behold.so JSON feed URL from `NEXT_PUBLIC_BEHOLD_FEED_URL` at build/runtime. Until that variable is set, the component falls back to a link card pointing at instagram.com/caribbeanguard, so the site is never broken by a missing feed.
+## The organization website (`site/`)
 
-One-time setup (needs an Instagram login, so this step belongs to the site owner, not a developer):
+`site/` is the live caribbeanguard.org Next.js site, imported as a git subtree of [TommasoRibaudo/caribbeanguard-org](https://github.com/TommasoRibaudo/caribbeanguard-org) with its history. That upstream repository is never edited from here. The only local change is the **Mapa** tab in `site/src/components/layout/Header.tsx`, which links to `MAP_URL` (`site/src/lib/map.ts`).
 
-1. Create a free account at [behold.so](https://behold.so) and connect the `@caribbeanguard` Instagram account.
-2. Create a feed and copy its JSON feed URL (`https://feeds.behold.so/<FEED_ID>`).
-3. Set `NEXT_PUBLIC_BEHOLD_FEED_URL` to that URL — locally in `.env.local`, and in the hosting provider's environment variables for production.
-4. Redeploy (or restart `npm run dev`). The homepage should switch from the fallback card to the live photo grid automatically.
+```powershell
+npm run setup                     # installs root and site dependencies
+$env:NEXT_PUBLIC_MAP_URL = "http://127.0.0.1:5174/"; npm run dev   # site on :3000, Mapa opens the local map
+```
 
-## Learn More
+Pull later upstream changes with `git subtree pull --prefix=site https://github.com/TommasoRibaudo/caribbeanguard-org.git master`. `npm run build` writes the static export to `site/out/`.
 
-To learn more about Next.js, take a look at the following resources:
+Useful entry points:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/?z=cocles`: selected beach, including QR entry.
+- `/?p=est2`: proposed station 3.3; stable ID preserved from the earlier map.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Structure
 
-## Deploy on Vercel
+| Path | Purpose |
+|---|---|
+| `site/` | Organization website (Next.js static export, upstream subtree) |
+| `web/index.html` | Leaflet map, beach records, interactions and bilingual copy |
+| `web/coastal.css` | Responsive layout and visual tokens |
+| `web/symbols.js` | Shared SVG status, hazard and facility pictograms |
+| `web/data/cg-hazards.geojson` | Existing geographic hazards with supported source corrections |
+| `web/data/full-map-source.json` | Extracted PDF features, labels, source fingerprint and page coordinates |
+| `web/data/full-map-geographic.geojson` | Provisional GPS placement of document annotations |
+| `web/data/osm-roads.geojson` | Geographic roads and paths from OpenStreetMap |
+| `tools/project_full_annotations.py` | Reproducible page-to-GPS projection |
+| `tools/fetch_osm_roads.py` | Explicit OpenStreetMap road-data refresh |
+| `web/geometry.js`, `web/data/zones-geometry.json` | Beach geometry and shoreline stroke rules |
+| `web/sw.js` | Offline cache and update handling |
+| `web/vendor/`, `web/fonts/` | Self-hosted Leaflet and Inter |
+| `web/tiles/` | Generated satellite imagery; not versioned |
+| `tools/` | Extraction, geographic processing, checks and packaging |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Data provenance and limits
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The geographic map retains the earlier annotation coordinates. The complete user-supplied `08102026_FULL MAP DRAFT.pdf` supports renumbering four stations to 3.2, 3.3, 3.5 and 3.6; station 3.3 is proposed. It also identifies the shaded bay as an area of strong currents. Equipment symbols do not establish staffing or current availability.
+
+The source extraction contains 314 vectors/symbols, including 53 headed rip-current paths, 11 existing and 18 proposed rescue-equipment symbols. These counts are document features, not field-verified services. Two station symbols share number 4.1, and four facility symbols remain undefined.
+
+The GPS map shows 153 document hazards, equipment and place features with provisional positions. Four nearby station numbers anchor the initial transform, while places also use four named OpenStreetMap location controls spread across the coast. Roads and paths come directly from a bounded OpenStreetMap geographic extract rather than the document projection. This is not proof of public access, condition or passability, and the provisional document marks must not be used for navigation or rescue dispatch. See the [source review](docs/design/icon-system-and-source-review.md) before changing geographic data. `needs_confirmation: true` must remain until an accountable review supports changing it.
+
+## Regenerate the full-map extraction
+
+Use Python with PyMuPDF and NumPy. Keep the original PDF outside the public deploy folder.
+
+```powershell
+python tools/extract_full_map.py 'C:/path/to/08102026_FULL MAP DRAFT.pdf'
+python tools/reconcile_full_map.py
+python tools/project_full_annotations.py
+```
+
+The first command regenerates page-space JSON. The second applies the documented four-station crosswalk and strong-current classification without changing geometry. The third places document annotations provisionally on the GPS map. Review generated diffs before committing. `tools/inspect_full_map.py` additionally needs OpenCV and NumPy; it records an experimental registration report under ignored `out/pdf-review/` and never publishes geometry.
+
+## Publishing and maintenance
+
+Deploy the existing Vercel project from `web/` using the team scope in [the deployment guide](docs/deploy.md). Git push alone does not upload the ignored imagery. The original logo is unchanged.
+
+Keep guidance, review status and proposal status explicit. Never convert lower-risk guidance into a claim that today's water is safe. Browser viewport checks do not replace field review, real-device offline testing, accessibility testing or imagery-rights review.
+
+\n

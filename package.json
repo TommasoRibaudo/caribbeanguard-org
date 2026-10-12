@@ -1,29 +1,18 @@
 {
-  "name": "cg-app",
-  "version": "0.1.0",
+  "name": "caribbean-guard-map",
   "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Caribbean Guard: organization website (site/, Next.js) and mobile-first coastal safety map (web/)",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "extract:content": "node scripts/extract-content.mjs",
-    "download:media": "node scripts/download-media.mjs"
-  },
-  "dependencies": {
-    "next": "16.2.10",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "dev": "npm --prefix site run dev",
+    "build": "npm --prefix site run build",
+    "setup": "npm ci && npm --prefix site ci",
+    "dev:map": "vite web --host 127.0.0.1 --port 5174",
+    "build:map": "node tools/build_map.js",
+    "check:map": "node tools/check_copy.js"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "cheerio": "^1.2.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.10",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "vite": "^5.4.10"
   }
 }
