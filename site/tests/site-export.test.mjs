@@ -9,6 +9,24 @@ const out = fileURLToPath(new URL('../out/', import.meta.url));
 const files = readdirSync(out).filter(name => name.endsWith('.html'));
 const documents = files.map(file => ({ file, $: load(readFileSync(join(out, file), 'utf8')) }));
 const origin = 'https://caribbeanguard.org';
+
+test('map assets resolve inside the app at production clean URLs', () => {
+  const $ = load(readFileSync(join(out, 'mapa/app/index.html'), 'utf8'));
+  const references = $('script[src],link[href],img[src]').toArray()
+    .map(el => $(el).attr('src') || $(el).attr('href'))
+    .filter(ref => ref && !/^(https?:|data:|\/)/.test(ref));
+  // These are runtime fetch/registration paths, resolved using the same base.
+  references.push('sw.js', 'geometry.js', 'symbols.js');
+  for (const route of ['/mapa/app', '/mapa/app/', '/mapa/app/index.html', '/mapa/app?z=cocles']) {
+    const documentUrl = new URL(route, origin);
+    const base = new URL($('base[href]').attr('href') || documentUrl.href, documentUrl);
+    for (const ref of references) {
+      const url = new URL(ref, base);
+      assert.ok(url.pathname.startsWith('/mapa/app/'), `${route}: ${ref} escaped its asset directory`);
+      assert.ok(existsSync(join(out, url.pathname.slice(1))), `${route}: missing ${url.pathname}`);
+    }
+  }
+});
 function targetFile(pathname) {
   const path = decodeURIComponent(pathname).replace(/^\/+/, '');
   return [resolve(out, path || 'index.html'), resolve(out, `${path}.html`), resolve(out, path, 'index.html')]
