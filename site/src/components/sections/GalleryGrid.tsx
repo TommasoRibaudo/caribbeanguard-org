@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RichImage, Theme } from "@/lib/content-types";
 
 type GalleryGridProps = {
@@ -12,10 +12,16 @@ type GalleryGridProps = {
 export default function GalleryGrid({ theme = "white", images }: GalleryGridProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const hasMultiple = images.length > 1;
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const isOpen = activeIndex !== null;
 
   useEffect(() => {
-    if (activeIndex === null) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!isOpen) { dialog.close(); return; }
+    dialog.showModal();
 
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setActiveIndex(null);
@@ -29,10 +35,10 @@ export default function GalleryGrid({ theme = "white", images }: GalleryGridProp
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [activeIndex, images.length]);
+  }, [isOpen, images.length]);
 
   const active = activeIndex !== null ? images[activeIndex] : null;
 
@@ -61,14 +67,16 @@ export default function GalleryGrid({ theme = "white", images }: GalleryGridProp
         </div>
       </div>
 
-      {active && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setActiveIndex(null)}
+        <dialog
+          ref={dialogRef}
+          aria-label="Galería de Caribbean Guard"
+          className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex"
+          onCancel={() => setActiveIndex(null)}
+          onClick={(event) => { if (event.target === event.currentTarget) setActiveIndex(null); }}
         >
           <button
             type="button"
-            className="absolute top-4 right-4 text-3xl leading-none text-white"
+            className="absolute top-4 right-4 z-10 h-12 w-12 rounded-full bg-black/50 text-3xl leading-none text-white"
             aria-label="Cerrar"
             onClick={() => setActiveIndex(null)}
           >
@@ -78,7 +86,7 @@ export default function GalleryGrid({ theme = "white", images }: GalleryGridProp
           {hasMultiple && (
             <button
               type="button"
-              className="absolute left-4 text-4xl text-white/80 hover:text-white"
+              className="absolute left-4 z-10 h-12 w-12 rounded-full bg-black/50 text-4xl text-white"
               aria-label="Anterior"
               onClick={(e) => {
                 e.stopPropagation();
@@ -90,20 +98,20 @@ export default function GalleryGrid({ theme = "white", images }: GalleryGridProp
           )}
 
           <div className="relative h-[80vh] w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
-            <Image
+            {active && <Image
               src={active.url}
               alt={active.alt}
               fill
               unoptimized
               referrerPolicy="no-referrer"
               className="object-contain"
-            />
+            />}
           </div>
 
           {hasMultiple && (
             <button
               type="button"
-              className="absolute right-4 text-4xl text-white/80 hover:text-white"
+              className="absolute right-4 z-10 h-12 w-12 rounded-full bg-black/50 text-4xl text-white"
               aria-label="Siguiente"
               onClick={(e) => {
                 e.stopPropagation();
@@ -113,8 +121,7 @@ export default function GalleryGrid({ theme = "white", images }: GalleryGridProp
               &#8250;
             </button>
           )}
-        </div>
-      )}
+        </dialog>
     </section>
   );
 }

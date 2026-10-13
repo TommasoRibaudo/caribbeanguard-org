@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import HeroSection from "@/components/sections/HeroSection";
-import Marquee from "@/components/sections/Marquee";
 import RichTextSection from "@/components/sections/RichTextSection";
 import { visionContent } from "@/content/vision";
 
@@ -19,7 +18,6 @@ export default function VisionPage() {
         overlayOpacity={visionContent.hero.overlayOpacity}
         heading={visionContent.hero.heading}
       />
-      <Marquee theme="bright" text={visionContent.marquee.text} />
       <RichTextSection theme="light" html={visionContent.thirds.html} />
       <RichTextSection theme="white" html={visionContent.policies.html} />
     </>

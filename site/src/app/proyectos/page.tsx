@@ -12,7 +12,8 @@ export default function ProyectosPage() {
   return (
     <ListSection
       theme="white"
-      title={proyectosContent.list.title}
+      title="Proyectos"
+      headingLevel={1}
       layout={proyectosContent.list.layout}
       items={proyectosContent.list.items}
     />

@@ -33,6 +33,7 @@ tools/*check*.jpg
 
 # Python bytecode and remaining debug renders from the failed georeferencing runs
 __pycache__/
+.venv-tiles/
 *.pyc
 tools/align_overlay.png
 tools/mask_ref.png

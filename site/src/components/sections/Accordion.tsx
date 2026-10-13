@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { AccordionItem, Theme } from "@/lib/content-types";
 
 type AccordionProps = {
@@ -15,6 +15,7 @@ export default function Accordion({
   allowMultiple = false,
 }: AccordionProps) {
   const [openItems, setOpenItems] = useState<Set<number>>(new Set());
+  const id = useId();
 
   const toggle = (index: number) => {
     setOpenItems((prev) => {
@@ -40,6 +41,7 @@ export default function Accordion({
                   type="button"
                   className="flex w-full items-center justify-between gap-4 py-5 text-left"
                   aria-expanded={isOpen}
+                  aria-controls={`${id}-${i}`}
                   onClick={() => toggle(i)}
                 >
                   <span className="text-lg font-semibold">{item.title}</span>
@@ -53,9 +55,8 @@ export default function Accordion({
                   </span>
                 </button>
                 <div
-                  className={`grid transition-[grid-template-rows] duration-300 ${
-                    isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                  }`}
+                  id={`${id}-${i}`}
+                  hidden={!isOpen}
                 >
                   <div className="overflow-hidden">
                     <div

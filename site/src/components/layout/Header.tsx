@@ -23,11 +23,10 @@ const LOGO_SRC =
 
 export default function Header() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  const [menuPath, setMenuPath] = useState<string | null>(null);
+  const menuOpen = menuPath === pathname;
+  function setMenuOpen(open: boolean) { setMenuPath(open ? pathname : null); }
+  if (menuPath !== null && menuPath !== pathname) setMenuPath(null);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -95,7 +94,7 @@ export default function Header() {
           className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 min-[1400px]:hidden"
           aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
           aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={() => setMenuOpen(!menuOpen)}
         >
           <span
             className={`h-0.5 w-6 bg-foreground transition-transform ${

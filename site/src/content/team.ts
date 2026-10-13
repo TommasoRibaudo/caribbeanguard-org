@@ -130,7 +130,7 @@ const MEMBERS: TeamMember[] = [
 ];
 
 export const teamContent = {
-  heading: '<h2 style="white-space:pre-wrap;">Familia de Mar</h2>',
+  heading: '<h1>La familia de mar</h1>',
   cardsTitle: "Conoce a nuestro equipo",
   cards: MEMBERS.map((m) => ({
     title: m.name,

@@ -1,0 +1,4 @@
+import Link from "next/link";
+import ProgramCards from "@/components/ProgramCards";
+export const metadata={title:"Programas"};
+export default function ProgramsPage(){return <div className="page-width directory-page"><div className="page-heading"><h1>Encuentra tu lugar<br/><span>en el agua.</span></h1><p>Explora las actividades de Caribbean Guard. Consulta los requisitos y confirma la disponibilidad con la organización antes de participar.</p></div><ProgramCards/><div className="feature-callout"><h2>Programa Playa Organizada</h2><p>Conoce cómo se plantea la organización de una playa: señalización, formación, equipos y participación de los negocios locales.</p><Link className="text-link" href="/programa-playa-organizada">Explorar el programa </Link></div><Link className="button-primary" href="/involcrate#contacto">Consultar una actividad </Link></div>;}

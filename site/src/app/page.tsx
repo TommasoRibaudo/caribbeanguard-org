@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import HeroSection from "@/components/sections/HeroSection";
-import VideoSection from "@/components/sections/VideoSection";
-import RichTextSection from "@/components/sections/RichTextSection";
-import InstagramFeed from "@/components/sections/InstagramFeed";
-import { homeContent } from "@/content/home";
+import Home from "@/components/Home";
 
 export const metadata: Metadata = {
   title: "Inicio",
@@ -12,23 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return (
-    <>
-      <HeroSection
-        theme="black"
-        backgroundImage={homeContent.hero.backgroundImage}
-        overlayOpacity={homeContent.hero.overlayOpacity}
-        heading={homeContent.hero.heading}
-        button={homeContent.hero.button}
-      />
-      <VideoSection
-        theme="light"
-        title={homeContent.video.title}
-        src={homeContent.video.src}
-        poster={homeContent.video.poster}
-      />
-      <RichTextSection theme="light" html={homeContent.mission.html} />
-      <InstagramFeed />
-    </>
-  );
+  return <Home />;
 }
