@@ -27,4 +27,4 @@ The standalone map and iOS safe-area review belong to the separate map PR. The w
 
 `site/src/app/globals.css`, `site/src/app/layout.tsx`, `site/src/components/Home.tsx`, `site/src/components/InstagramGallery.tsx`, `site/src/app/fonts/`, `site/public/instagram/`, and the website design/review documents.
 
-No merge or deployment has been performed.
+No merge or production deployment has been performed. Pull-request preview builds may be deployed automatically.
