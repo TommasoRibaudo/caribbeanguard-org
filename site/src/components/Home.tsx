@@ -4,6 +4,7 @@ import SearchBox from "./SearchBox";
 import ProgramCards from "./ProgramCards";
 import { homeContent } from "@/content/home";
 import CoastalVideo from "./CoastalVideo";
+import InstagramGallery from "./InstagramGallery";
 
 export default function Home() {
   return <>
@@ -22,7 +23,8 @@ export default function Home() {
         </div>
       </div>
       <figure className="hero-team">
-        <Image src="https://lh3.googleusercontent.com/d/1WVvW79pf7R_ykyeS9h788AfM7C844DkV=w1920" alt="El equipo y la comunidad de Caribbean Guard reunidos con su bandera" width={1920} height={1080} priority unoptimized referrerPolicy="no-referrer" />
+        <Image src="/instagram/team-beach-2024.jpg" alt="Seis integrantes de Caribbean Guard en la playa con su bandera y equipos de rescate" width={3216} height={5712} priority />
+        <figcaption>Foto de <a href="https://www.instagram.com/p/DCHEu_ixMjy/" target="_blank" rel="noopener noreferrer">@caribbeanguard</a></figcaption>
       </figure>
     </section>
     <section className="home-map-section">
@@ -45,6 +47,7 @@ export default function Home() {
         <div className="story-links"><Link href="/team">Nuestro equipo</Link><Link href="/involcrate">Participar</Link><Link href="/alianzas">Alianzas</Link></div>
       </div>
     </section>
+    <InstagramGallery />
     <section className="support-band page-width"><h2>Ayuda a cuidar esta costa</h2><Link href="/donar" className="button-primary">Cómo apoyar</Link></section>
   </>;
 }
