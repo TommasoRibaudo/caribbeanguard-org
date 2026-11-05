@@ -12,7 +12,7 @@ export default function MapFrame() {
       if (event.data?.type !== "cg-map-location" || typeof event.data.search !== "string") return;
       const incoming = new URLSearchParams(event.data.search);
       const next = new URLSearchParams();
-      for (const key of ["z", "b", "p"]) {
+      for (const key of ["z", "b", "p", "a", "sign"]) {
         const value = incoming.get(key);
         if (value && /^[a-z0-9-]{1,80}$/.test(value)) next.set(key, value);
       }
