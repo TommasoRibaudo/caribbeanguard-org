@@ -42,7 +42,8 @@ if(window.parent!==window){
 </script>`;
 // In the embedded copy, branding returns to the enclosing website.
 const index=readFileSync(resolve(target,'index.html'),'utf8')
- // cleanUrls serves the document at /mapa/app, so pin relative asset resolution.
+ // Vercel cleanUrls serves index.html at /mapa/app (without a slash).
+ // Pin the asset directory before any relative styles, scripts or fetches.
  .replace('<head>', '<head>\n<base href="/mapa/app/">')
  .replace('</head>',historyBridge+'\n</head>')
  .replace('else if(history.state && history.state.cgSheet)', 'else if(window.parent === window && history.state && history.state.cgSheet)')

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es" data-option="b">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Caribbean Guard | Zilla Slab + Source Sans 3</title>
+  <link rel="stylesheet" href="fonts.css">
+  <style>
+    :root{--navy:#0c2f42;--blue:#126a89;--mint:#eaf3f1;--cream:#f6f5ef;--ink:#163644;--muted:#536b73;--display:'Bevan',Georgia,serif;--text:'Atkinson Hyperlegible Next',Arial,sans-serif;--display-weight:400}
+    html[data-option="b"]{--display:'Zilla Slab',Georgia,serif;--text:'Source Sans 3',Arial,sans-serif;--display-weight:700}
+    html[data-option="c"]{--display:'Arvo',Georgia,serif;--text:'DM Sans',Arial,sans-serif;--display-weight:700}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--text);font-size:17px;line-height:1.5}
+    button{font:inherit}
+    .review-bar{position:sticky;top:0;z-index:30;background:#092838;color:#fff;border-bottom:1px solid #5a8190;box-shadow:0 3px 16px #091f2a28}
+    .review-inner{max-width:1440px;min-height:73px;padding:9px 28px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .review-title{font-size:12px;line-height:1.3;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#b5d6dc}
+    .review-title strong{display:block;font-size:15px;letter-spacing:0;text-transform:none;color:#fff;font-weight:600;margin-top:2px}
+    .choices{display:flex;gap:5px;flex-wrap:wrap}
+    .choices button{border:1px solid #7398a6;color:#e8f4f4;background:transparent;border-radius:4px;padding:8px 13px;cursor:pointer;font-size:13px;font-weight:700;line-height:1.2}
+    .choices button[aria-pressed="true"]{color:#092838;background:#d9f0e9;border-color:#d9f0e9}
+    .choices button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+    .page{max-width:1440px;margin:auto;background:#fff;box-shadow:0 20px 80px #15394312}
+    .site-header{height:92px;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:0 6.4%;background:#fff;border-bottom:1px solid #dae5e5}
+    .brand{display:flex;align-items:center;gap:13px;min-width:0}
+    .brand img{display:block;width:68px;height:68px;object-fit:contain}
+    .brand-name{font-size:21px;line-height:1.04;font-weight:800;letter-spacing:-.025em;color:var(--navy)}
+    .nav{display:flex;align-items:center;gap:30px;color:var(--ink);font-size:14px;font-weight:700}
+    .nav span{white-space:nowrap}
+    .support{padding:10px 18px;border:1.5px solid var(--blue);border-radius:3px;color:var(--blue);white-space:nowrap;font-size:14px;font-weight:700}
+    .hero{background:var(--mint);padding:70px 6.4% 64px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(290px,.7fr);gap:8%;align-items:end}
+    .eyebrow{font-size:12px;line-height:1.3;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin:0 0 21px}
+    h1,h2,h3,p{margin-top:0}
+    h1,h2{font-family:var(--display);font-weight:var(--display-weight)}
+    h1{font-size:clamp(45px,4.7vw,71px);letter-spacing:-.035em;line-height:1.07;margin:0;max-width:850px;color:var(--navy)}
+    h1 span{display:block}
+    .hero-side{padding-bottom:5px}
+    .hero-side p{font-size:21px;line-height:1.48;max-width:415px;margin:0 0 30px}
+    .actions{display:flex;align-items:center;gap:23px;flex-wrap:wrap}
+    .primary{display:inline-flex;align-items:center;justify-content:center;background:#086b94;color:#fff;min-height:48px;padding:0 21px;border-radius:3px;font-size:15px;font-weight:700}
+    .secondary{color:var(--blue);font-size:15px;font-weight:700;text-decoration:underline;text-underline-offset:4px}
+    .hero-photo{position:relative;overflow:hidden;height:365px;background:#295b67}
+    .hero-photo img{width:100%;height:100%;display:block;object-fit:cover;object-position:center 44%}
+    .photo-credit{position:absolute;right:23px;bottom:18px;color:#fff;background:#092838d9;padding:5px 9px;font-size:11px;letter-spacing:.05em}
+    .section{padding:76px 6.4%}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:25px;margin-bottom:26px}
+    h2{font-size:clamp(34px,3vw,45px);letter-spacing:-.026em;line-height:1.16;color:var(--navy);margin:0}
+    .caption{font-size:15px;color:var(--muted);max-width:750px;line-height:1.5;margin:20px 0 0}
+    .beaches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+    .beach{border:1px solid #d8e4e5;border-top:5px solid var(--tone);background:#f9fbfa;padding:22px 22px 24px;min-height:165px}
+    .beach h3{font-size:21px;line-height:1.2;font-weight:700;margin:0 0 12px}
+    .beach p{font-size:12px;line-height:1.35;text-transform:uppercase;letter-spacing:.045em;font-weight:800;margin:0}
+    .beach.low{--tone:#1f9d55}.beach.high{--tone:#c62828}.beach.moderate{--tone:#f5b942}
+    .story{background:#f0f5f2;display:grid;grid-template-columns:1fr 1fr;gap:8%;align-items:center}
+    .story p{font-size:20px;line-height:1.5;max-width:460px;margin:22px 0}
+    .story-photo{height:290px;overflow:hidden;background:#376b72}
+    .story-photo img{width:100%;height:100%;object-fit:cover;object-position:center 36%}
+    .end{display:flex;align-items:center;justify-content:space-between;gap:25px;padding:37px 6.4%;background:var(--navy);color:#fff}
+    .end h2{color:#fff;font-size:32px}
+    .end .primary{background:#e5f3ec;color:var(--navy)}
+    .review-note{max-width:1440px;margin:0 auto;padding:18px 28px 30px;font-size:13px;line-height:1.5;color:#4b646c}
+    .review-note strong{color:var(--navy)}
+    @media(max-width:950px){.nav{display:none}.hero{grid-template-columns:1fr;gap:28px;padding-top:48px}.hero-side p{max-width:680px}.beaches{grid-template-columns:1fr 1fr}.review-inner{align-items:flex-start;flex-direction:column;gap:10px}.story{grid-template-columns:1fr}.story-photo{order:-1}}
+    @media(max-width:620px){.review-inner{padding:10px 14px}.choices{display:grid;grid-template-columns:repeat(3,1fr);width:100%}.choices button{padding:8px 5px;font-size:11px}.site-header{height:76px;padding:0 5%}.brand img{width:53px;height:53px}.brand-name{font-size:17px}.support{font-size:12px;padding:8px}.hero{padding:42px 5% 45px}h1{font-size:clamp(39px,10.5vw,57px)}.hero-side p{font-size:18px}.hero-photo{height:275px}.section{padding:54px 5%}.section-head{align-items:flex-start;flex-direction:column}.beaches{grid-template-columns:1fr}.beach{min-height:0}.story-photo{height:230px}.end{padding:35px 5%;align-items:flex-start;flex-direction:column}.end h2{font-size:28px}}
+  </style>
+</head>
+<body>
+  <div class="review-bar" role="group" aria-label="Opciones de tipografía">
+    <div class="review-inner">
+      <div class="review-title">Comparación interna <strong>Una página, tres sistemas tipográficos</strong></div>
+      <div class="choices">
+        <button type="button" data-option="a" aria-pressed="false">A · Bevan + Atkinson</button>
+        <button type="button" data-option="b" aria-pressed="true">B · Zilla + Source</button>
+        <button type="button" data-option="c" aria-pressed="false">C · Arvo + DM Sans</button>
+      </div>
+    </div>
+  </div>
+  <div class="page">
+    <header class="site-header">
+      <div class="brand"><img src="../../../site/public/brand/caribbean-guard.png" alt="Logo de Caribbean Guard"><span class="brand-name">Caribbean<br>Guard</span></div>
+      <nav class="nav" aria-label="Navegación de muestra"><span>Playas y mapa</span><span>Programas</span><span>La organización</span><span>Alianzas</span></nav>
+      <span class="support">Apoyar</span>
+    </header>
+    <main>
+      <section class="hero">
+        <div><p class="eyebrow">Caribe Sur · Costa Rica</p><h1><span>Caribbean Guard</span><span>Salvando Vidas</span></h1></div>
+        <div class="hero-side"><p>Una comunidad dedicada a la educación y la prevención de ahogamientos en el Caribe Sur.</p><div class="actions"><span class="primary">Explorar el mapa</span><span class="secondary">Conocer los programas</span></div></div>
+      </section>
+      <div class="hero-photo"><img src="../../../site/public/videos/programa-playa-organizada-poster.jpg" alt="Vista aérea de la costa del Caribe Sur"><span class="photo-credit">Caribe Sur, Costa Rica</span></div>
+      <section class="section">
+        <div class="section-head"><h2>Encuentra tu playa</h2><span class="secondary">Abrir mapa completo</span></div>
+        <div class="beaches" aria-label="Muestra de la jerarquía de nombres y avisos">
+          <article class="beach low"><h3>Playa Negra</h3><p>Ten cuidado igual</p></article>
+          <article class="beach high"><h3>Puerto Viejo</h3><p>No entres al agua</p></article>
+          <article class="beach moderate"><h3>Playa Chiquita</h3><p>Revisa antes de entrar</p></article>
+        </div>
+        <p class="caption">Selecciona una playa para abrir su guía. Este mapa no muestra las condiciones del mar en vivo.</p>
+      </section>
+      <section class="section story"><div><p class="eyebrow">La organización</p><h2>La comunidad que cuida esta costa</h2><p>Guardavidas, nadadores, pescadores y vecinos que comparten su conocimiento para cuidar el Caribe Sur.</p><span class="secondary">Conoce a Caribbean Guard</span></div><div class="story-photo"><img src="../../../site/public/videos/programa-playa-organizada-poster.jpg" alt="Costa del Caribe Sur"></div></section>
+    </main>
+    <footer class="end"><h2>Ayuda a cuidar esta costa</h2><span class="primary">Cómo apoyar</span></footer>
+  </div>
+  <p class="review-note"><strong>Solo para comparar tipografía.</strong> La composición, el texto, la fotografía y el logo son idénticos en las tres opciones. Los botones de la página son visuales; ninguna opción cambia el sitio publicado. Fuentes guardadas localmente con sus licencias OFL.</p>
+  <script>
+    const names={a:'Bevan + Atkinson Hyperlegible Next',b:'Zilla Slab + Source Sans 3',c:'Arvo + DM Sans'};
+    function select(option){
+      if(!names[option])return;
+      document.documentElement.dataset.option=option;
+      document.querySelectorAll('.choices button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.option===option)));
+      location.hash=option;
+      document.title=`Caribbean Guard | ${names[option]}`;
+    }
+    document.querySelectorAll('.choices button').forEach(button=>button.addEventListener('click',()=>select(button.dataset.option)));
+    if(names[location.hash.slice(1)])select(location.hash.slice(1));
+  </script>
+</body>
+</html>
