@@ -69,3 +69,13 @@ test('hourly view covers 24 consecutive hours without inventing missing data',()
  assert.equal(rows[0].swell,0);assert.equal(rows[23].swell,2.3);
  assert.ok(rows.every(r=>r.wind===null));
 });
+
+test('a chosen forecast hour stays selected as the 24-hour window advances',()=>{
+ const initial=forecast.hourlyRows(null,null,1);
+ const selectedTime=initial[6].time;
+ const shifted=forecast.hourlyRows(null,null,7201);
+ assert.equal(shifted[forecast.hourIndex(shifted,selectedTime)].time,selectedTime);
+ assert.equal(forecast.hourIndex(shifted,initial[0].time),0);
+ assert.equal(forecast.hourIndex(shifted,shifted.at(-1).time+3600),23);
+ assert.equal(forecast.hourIndex(shifted,undefined),0);
+});

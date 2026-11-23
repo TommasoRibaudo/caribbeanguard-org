@@ -9,6 +9,7 @@ const layout=entries=>Array.from(context.CGGeom.declutterMarkers(entries));
 const rescue={id:'rescue',x:100,y:100,size:44,priority:100,required:true};
 const access={id:'access',x:120,y:110,size:44,priority:50};
 const groups=entries=>context.CGGeom.groupMarkers(entries);
+const offset=(entry,obstacles)=>({...context.CGGeom.offsetFromMarkers(entry,obstacles)});
 
 test('colliding stations group at an existing anchor without modifying coordinates',()=>{
   const entries=[rescue,{...rescue,id:'second',x:130},{...rescue,id:'third',x:220}];
@@ -46,4 +47,30 @@ test('access beats a place, access pairs thin consistently, all rescue markers r
 test('touch areas retain six pixels of separation at the exact boundary',()=>{
   assert.deepEqual(layout([rescue,{...access,x:149,y:100}]),['rescue']);
   assert.deepEqual(layout([rescue,{...access,x:150,y:100}]),['rescue','access']);
+});
+
+test('a nearby medical pin clears a rescue pin with the shortest offset and preserves both anchors',()=>{
+  const medical={x:123,y:100,size:44};
+  const obstacles=[rescue];
+  const before=JSON.stringify([medical,obstacles]);
+  assert.deepEqual(offset(medical,obstacles),{x:25,y:0});
+  assert.equal(JSON.stringify([medical,obstacles]),before);
+  assert.deepEqual(offset({...medical,x:148},obstacles),{x:0,y:0});
+});
+
+test('a medical pin can shift sideways when a second rescue pin blocks the direct route',()=>{
+  const medical={x:123,y:100,size:44};
+  const obstacles=[rescue,{...rescue,x:151}];
+  const shift=offset(medical,obstacles);
+  assert.notEqual(shift.y,0);
+  for(const obstacle of obstacles){
+    assert.ok(Math.hypot(medical.x+shift.x-obstacle.x,medical.y+shift.y-obstacle.y)>=48);
+  }
+  assert.ok(Math.hypot(shift.x,shift.y)<=56);
+});
+
+test('a crowded medical pin stays anchored when its nearby offset is blocked',()=>{
+  const medical={x:100,y:100,size:44};
+  const obstacles=[rescue,...[[140,100],[100,140],[60,100],[100,60]].map(([x,y])=>({x,y,size:44}))];
+  assert.deepEqual(offset(medical,obstacles),{x:0,y:0});
 });

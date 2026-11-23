@@ -69,6 +69,30 @@
     return g;
   }
 
+  // Follow the polygon edge between the landward cap ends, away from the
+  // offshore guide. The returned line is for display masking only.
+  function bandShoreline(ring, west, east, offshore) {
+    const count=ring.length-1;
+    if(count<3 || !west || !east || !offshore) return [];
+    function nearest(point){
+      let index=-1, distance=(.00002)**2;
+      for(let i=0;i<count;i++){
+        const dx=point[0]-ring[i][0], dy=point[1]-ring[i][1];
+        const squared=dx*dx+dy*dy;
+        if(squared<distance){index=i;distance=squared;}
+      }
+      return index;
+    }
+    const start=nearest(west), end=nearest(east), sea=nearest(offshore);
+    if(start<0 || end<0 || sea<0 || start===end || sea===start || sea===end) return [];
+    const wrap=i=>(i+count)%count;
+    const step=wrap(sea-start)<wrap(end-start)?-1:1;
+    const line=[];
+    for(let i=start;i!==end;i=wrap(i+step)) line.push(ring[i]);
+    line.push(ring[end]);
+    return line;
+  }
+
   // Approved proof 03: one quadratic family, fixed filled heads, no casing.
   // Source annotations remain evidence; these curves communicate broad intent.
 // Original experimental geometry primitive. No source drawing is mutated.
@@ -151,7 +175,34 @@ function simplifyCurve(points) {
     return groups;
   }
 
-  // Labels may move within a small local radius; geographic symbols never do.
+  // Nudge a visible disc within roughly one marker width so close station types can
+  // both be read. The caller can still draw a leader to the real anchor.
+  function offsetFromMarkers(entry, obstacles, gap=4){
+    const maxOffset=entry.size+12;
+    const nearby=obstacles.map(obstacle=>{
+      const x=obstacle.x-entry.x, y=obstacle.y-entry.y;
+      return {x,y,distance:Math.hypot(x,y),clearance:(entry.size+obstacle.size)/2+gap};
+    }).filter(obstacle=>obstacle.distance<maxOffset+obstacle.clearance);
+    const overlaps=nearby.filter(obstacle=>obstacle.distance<obstacle.clearance);
+    if(!overlaps.length)return {x:0,y:0};
+
+    const nearest=overlaps.reduce((closest,obstacle)=>obstacle.distance<closest.distance?obstacle:closest);
+    const away=nearest.distance?Math.atan2(-nearest.y,-nearest.x):0;
+    const directions=[0,1,-1,2,-2,3,-3,4].map(step=>{
+      const angle=away+step*Math.PI/4;
+      return {x:Math.cos(angle),y:Math.sin(angle)};
+    });
+    const minOffset=Math.ceil(Math.max(...overlaps.map(obstacle=>obstacle.clearance-obstacle.distance)));
+    for(let distance=minOffset;distance<=maxOffset;distance++){
+      for(const direction of directions){
+        const x=distance*direction.x, y=distance*direction.y;
+        if(nearby.every(obstacle=>Math.hypot(x-obstacle.x,y-obstacle.y)>=obstacle.clearance))return {x,y};
+      }
+    }
+    return {x:0,y:0};
+  }
+
+  // Labels may move within a small local radius while their source stays fixed.
   // A crowded or off-screen beach yields instead of being pulled across the map.
   function layoutBeachLabels(entries, obstacles, bounds, gap=6){
     const placed=[], result=[];
@@ -260,11 +311,13 @@ function simplifyCurve(points) {
     TAPER_M: TAPER_M,
     zoneStroke: zoneStroke,
     taperedPolyline: taperedPolyline,
+    bandShoreline: bandShoreline,
     simplifyCurve: simplifyCurve,
     ripShape: ripShape,
     curveArrow: curveArrow,
     declutterMarkers: declutterMarkers,
     groupMarkers: groupMarkers,
+    offsetFromMarkers: offsetFromMarkers,
     layoutBeachLabels: layoutBeachLabels,
     placeLabels: placeLabels
   };

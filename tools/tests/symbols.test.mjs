@@ -11,7 +11,8 @@ runInNewContext(read('web/symbols.js'),context);
 const symbols=context.window.CGSymbols;
 
 test('every semantic symbol renders offline, decorative, and without active SVG content',()=>{
-  assert.equal(symbols.kinds.length,38);
+  assert.equal(symbols.kinds.length,39);
+  assert.notEqual(symbols.svg('medical_station'),symbols.svg('rescue_station'));
   for(const kind of symbols.kinds){
     const svg=symbols.svg(kind);
     assert.match(svg,/<svg[^>]+aria-hidden="true"[^>]+focusable="false"/);
@@ -41,7 +42,7 @@ test('bundled source SVGs match their pinned upstream integrity records',()=>{
     const manifest=JSON.parse(read(`web/icons/${family}/manifest.json`));
     for(const row of manifest.assets){
       const file=row.file.split('/').at(-1);
-      const bytes=readFileSync(new URL(`web/icons/${family}/${file}`,root));
+      const bytes=read(`web/icons/${family}/${file}`).replaceAll('\r\n','\n');
       assert.equal(createHash('sha256').update(bytes).digest('hex'),row.sha256,file);
     }
   }

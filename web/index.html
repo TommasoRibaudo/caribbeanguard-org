@@ -878,8 +878,9 @@
     .leaflet-bottom.leaflet-left{bottom:0;left:360px}
   }
 </style>
-<link rel="stylesheet" href="coastal.css?v=75">
-<link rel="stylesheet" href="coastal-panels.css?v=75">
+<link rel="stylesheet" href="coastal.css?v=82">
+<link rel="stylesheet" href="coastal-panels.css?v=82">
+<link rel="stylesheet" href="review.css?v=82">
 </head>
 <body>
 
@@ -997,14 +998,16 @@
      AFTER Leaflet and BEFORE this file. Stroke widths, dash ratios, the 40 m end
      shoreline strokes, rip arrows and label collision live in there now, so
      the card swatch and the map read ONE table instead of two copies. -->
-<script src="geometry.js?v=75"></script>
-<script src="panel-gesture.js?v=75"></script>
-<script src="forecast.js?v=75"></script>
-<script src="advisory.js?v=75"></script>
+<script src="geometry.js?v=82"></script>
+<script src="panel-gesture.js?v=82"></script>
+<script src="forecast.js?v=82"></script>
+<script src="advisory.js?v=82"></script>
+<script src="danger.js?v=82"></script>
+<script src="analytics.js?v=82" data-surface="coastal_map" data-project-token="" data-region=""></script>
 <!-- The lifeguard post clock, in Costa Rica time whatever the phone says. -->
-<script src="lifeguard.js?v=75"></script>
-<script src="symbols.js?v=75"></script>
-<script src="signposts.js?v=75"></script>
+<script src="lifeguard.js?v=82"></script>
+<script src="symbols.js?v=82"></script>
+<script src="signposts.js?v=82"></script>
 <script>document.body.insertAdjacentHTML("afterbegin",CGSymbols.haloDefinitions);</script>
 <script>
 /* ============================================================
@@ -1410,6 +1413,7 @@ const tierOf = z => CHARACTER[z.character.class].tier;
 
 /* The local part of a namespaced id, which is what the QR deep links carry. */
 const localId = id => id.slice(id.indexOf("/") + 1);
+const track = action => window.CGAnalytics?.track(action);
 
 /* ============================================================
    COPY
@@ -1557,7 +1561,7 @@ const T = {
       voidStatus:"Sin describir",
       voidWhy:(total,zoned,surveyed)=>`Este mapa cubre ${total} km de costa. Hay indicaciones para cinco tramos, que suman unos ${zoned} km. Playa Grande y Manzanillo aparecen como lugares, sin evaluación de seguridad. El mapa anotado de Caribbean Guard cubre ${surveyed} km. El resto de la costa sigue sin describir.`,
       voidRule:"Que no haya nada dibujado en un tramo no quiere decir que ese tramo sea seguro. Quiere decir que nadie lo ha mirado.",
-      unassessedStatus:"Sin evaluar",
+      unassessedStatus:"Sin guía local revisada",
       unassessedWhy:"Aún no hay indicaciones de seguridad para nadar en esta playa.",
       unassessedLocation:"La línea gris es aproximada: no marca los límites de la playa ni una entrada segura.",
       /* stations */
@@ -1598,7 +1602,7 @@ const T = {
       savedNever:"No guardado en este teléfono",
       previewNoStore:"La copia sin conexión está desactivada en esta vista local.",
       previewWhy:"Esta vista local siempre carga el mapa y sus líneas actuales para revisión. La versión publicada conserva la copia sin conexión.",
-      bandFailed:"No se pudo cargar el resaltado de la playa. Los nombres y detalles siguen disponibles.",
+      bandFailed:"No se pudieron cargar las franjas de peligro. Los nombres y detalles siguen disponibles.",
       savedAt:when=>`Guardado en este teléfono · ${when}`,
       savedNoStore:"Este navegador no guarda la página",
       savedRefreshing:"Actualizando...",
@@ -1730,7 +1734,7 @@ const T = {
       voidStatus:"Not described",
       voidWhy:(total,zoned,surveyed)=>`This map covers ${total} km of coast. Five stretches have guidance, totaling about ${zoned} km. Playa Grande and Manzanillo are shown as places without a safety assessment. Caribbean Guard's annotated map covers ${surveyed} km. The remaining coast is not described.`,
       voidRule:"A stretch with nothing drawn on it is not a stretch that is safe. It is a stretch nobody has looked at.",
-      unassessedStatus:"Not assessed",
+      unassessedStatus:"No reviewed local guidance",
       unassessedWhy:"No beach-specific swimming guidance has been reviewed here.",
       unassessedLocation:"The grey line is approximate: it does not mark the beach limits or a safe entry.",
       station:"Rescue Station",
@@ -1752,7 +1756,7 @@ const T = {
       savedNever:"Not saved on this phone",
       previewNoStore:"Offline saving is off in this local preview.",
       previewWhy:"This local preview always loads the current map and linework for review. The published map still saves an offline copy.",
-      bandFailed:"The selected beach highlight could not load. Beach labels and details remain available.",
+      bandFailed:"The danger bands could not load. Beach labels and details remain available.",
       savedAt:when=>`Saved on this phone · ${when}`,
       savedNoStore:"This browser does not save the page",
       savedRefreshing:"Refreshing...",
@@ -2045,7 +2049,7 @@ function hoursLine(z, when){
 }
 function statusCardInner(z, when){
   const t = T[lang];
-  return `<span class="eyebrow">${dangerLabel(z)}</span>
+  return `<span class="eyebrow">${lang==="es"?"Guía local":"Local guidance"}</span>
           <span class="instr">${t[instructionKey(z, when)]}</span>${hoursLine(z, when)}`;
 }
 const postState = new Map();   // zone id -> on duty when last drawn
@@ -2489,8 +2493,8 @@ function restyleLabels(){
   placeBeachLabels();
 }
 
-/* Show nearby beach names when there is room. Only text moves: source anchors and
-   rescue symbols stay fixed, and thin leaders preserve the geographic link. */
+/* Show nearby beach names when there is room. Thin leaders preserve their
+   geographic link, and the visible station symbols reserve space. */
 function placeBeachLabels(){
   const mapBox=map.getContainer().getBoundingClientRect();
   const visible=e=>e&&e.getBoundingClientRect().width&&getComputedStyle(e).visibility!=='hidden'&&getComputedStyle(e).display!=='none';
@@ -2629,8 +2633,7 @@ if(window.ResizeObserver){
 // settles after the document finishes loading.
 window.addEventListener("load", ()=>refit(0));
 
-/* Beach classification lives in labels and detail copy. Only the selected
-   beach receives a flat tint. Signed current advisories retain a separate halo. */
+/* Signed current advisories retain a separate halo above the danger bands. */
 let zonesReady = false;
 const layers = {};
 function restyleZones(){
@@ -2651,7 +2654,6 @@ function drawZones(){
   });
   zonesReady=true;
   restyleZones();
-  if(bandZone)showBand(bandZone);
 }
 map.on('zoomend',restyleZones);
 
@@ -2669,7 +2671,7 @@ const geomReady = fetch("data/zones-geometry.json")
     // Provisional extents for the beaches Caribbean Guard has not bounded.
     UNASSESSED_BEACHES.forEach(b => { b.line = (g.provisional && g.provisional[b.id]) || []; });
     drawZones();
-    drawAmbientBands();
+    drawProvisionalTargets();
     restyleLabels();
     renderDistances();      // nearest point of each beach, now that lines exist
   })
@@ -3036,15 +3038,10 @@ function scheduleScrollCues(){
     sheetScrollCue.hidden=!mobile||sheet.hidden||!more(sheetBody);
     pickerScrollCue.hidden=!mobile||sheet.classList.contains('open')||!document.body.classList.contains('dock-full')||!more(document.getElementById('picker'));
     for(const cue of [sheetScrollCue,pickerScrollCue])cue.setAttribute('aria-label',lang==='es'?'Ver más contenido':'More content');
-    sheetBody.querySelectorAll('.hourly-panel:not([hidden])').forEach(panel=>{
-      const track=panel.querySelector('.hourly-scroll');
-      const prev=panel.querySelector('[data-hourly-page="-1"]'),next=panel.querySelector('[data-hourly-page="1"]');
-      if(prev)prev.disabled=track.scrollLeft<=10;
-      if(next)next.disabled=track.scrollWidth-track.clientWidth-track.scrollLeft<=10;
-    });
+
   });
 }
-document.addEventListener('scroll',event=>{if(event.target.matches?.('.sheet-body,#picker,.hourly-scroll'))scheduleScrollCues();},true);
+document.addEventListener('scroll',event=>{if(event.target.matches?.('.sheet-body,#picker'))scheduleScrollCues();},true);
 window.addEventListener('resize',scheduleScrollCues);
 document.addEventListener('toggle',scheduleScrollCues,true);
 new ResizeObserver(scheduleScrollCues).observe(sheetBody);
@@ -3471,16 +3468,17 @@ function openZone(z){
     <div class="zone-detail">
       <div class="zone-top">
         <h2 id="sheet-title" tabindex="-1">${z.name[lang]}</h2>
-        <section class="beach-safety ${tierOf(z)}" aria-label="${lang==='es'?'Seguridad en la playa':'Beach safety'}"><div class="statuscard ${tierOf(z)}" data-zone="${z.id}">
+        <div data-rating-detail="${z.id}">${ratingDetail(z.id)}</div>
+        <section class="beach-safety ${tierOf(z)}${c.class==='no-swim'?' no-swim':''}" data-safety-rating="${z.id}" style="--rating:${ratingColor(z.id)}" aria-label="${lang==='es'?'Seguridad en la playa':'Beach safety'}"><div class="statuscard ${tierOf(z)}" data-zone="${z.id}">
           ${statusCardInner(z)}
-        </div>${c.class==='lower-risk'?`<p class="beach-caution">${lang==='es'?'Menor riesgo no significa que sea seguro.':'Lower risk does not mean safe.'}</p>`:''}${caveats}${renderSwimAdvisory(z.id,true,true)}</section>
+        </div>${c.class==='lower-risk'&&z.id!=='cg:zone/playa-negra'?`<p class="beach-caution">${lang==='es'?'Menor riesgo no significa que sea seguro.':'Lower risk does not mean safe.'}</p>`:''}${caveats}${renderSwimAdvisory(z.id,true,'beach')}</section>
         <section class="beach-help" aria-labelledby="beach-help-title">
           <h3 id="beach-help-title">${lang==='es'?'Si te arrastra una corriente':'If a current pulls you out'}</h3>
           <p class="escape">${t.escapeRip}</p>
           <a class="help-call" href="tel:911">${t.call}</a>
         </section>
       </div>
-      ${renderForecastPanel(z.id,false,'swell',true)}
+      ${renderForecastPanel(z.id)}
       <div class="zone-lower">
         <section class="beach-overview" aria-labelledby="beach-overview-title">
           <h3 id="beach-overview-title">${lang==='es'?'Sobre esta playa':'About this beach'}</h3>
@@ -3502,9 +3500,8 @@ function openZone(z){
   // Before the geometry lands there is one point to fly to rather than a line.
   flyClear(z.line.length ? L.latLngBounds(z.line).pad(0.08)
                          : L.latLngBounds([[z.at[0]-.003,z.at[1]-.003],[z.at[0]+.003,z.at[1]+.003]]));
-  /* Keep the selected band's stronger wash through the flight. On a deep link,
-     the geometry fetch may still be pending; drawZones() calls this again when
-     the coast arrives. */
+  /* Keep the selected band's stronger wash through the flight, including when
+     the band data arrives after a deep link. */
   showBand(z);
   sheetAddress("z=" + localId(z.id));
 }
@@ -3543,10 +3540,11 @@ function openUnassessedBeach(beach){
     return `
     <div class="zone-detail unassessed-detail"><div class="zone-top">
     <h2 id="sheet-title" tabindex="-1">${beach.name}</h2>
-    <section class="beach-safety unassessed" aria-label="${lang==='es'?'Seguridad en la playa':'Beach safety'}"><div class="statuscard unassessed">
-      <span class="eyebrow">${lang==='es'?'Evaluación de la playa':'Beach assessment'}</span><span class="instr">${t.unassessedStatus}</span></div><p class="safety-context">${t.unassessedWhy}</p>${renderSwimAdvisory(beach.id,true,true)}</section>
+        <div data-rating-detail="${beach.id}">${ratingDetail(beach.id)}</div>
+    <section class="beach-safety unassessed" data-safety-rating="${beach.id}" style="--rating:${ratingColor(beach.id)}" aria-label="${lang==='es'?'Seguridad en la playa':'Beach safety'}"><div class="statuscard unassessed">
+      <span class="eyebrow">${lang==='es'?'Evaluación de la playa':'Beach assessment'}</span><span class="instr">${t.unassessedStatus}</span></div><p class="safety-context">${t.unassessedWhy}</p>${renderSwimAdvisory(beach.id,true,'beach')}</section>
     <section class="beach-help" aria-labelledby="beach-help-title"><h3 id="beach-help-title">${lang==='es'?'Si te arrastra una corriente':'If a current pulls you out'}</h3><p class="escape">${t.escapeRip}</p><a class="help-call" href="tel:911">${t.call}</a></section></div>
-    ${renderForecastPanel(beach.id,false,'swell',true)}
+    ${renderForecastPanel(beach.id)}
     <div class="zone-lower"><section class="beach-overview"><h3>${lang==='es'?'Sobre esta playa':'About this beach'}</h3><p class="beach-context">${t.unassessedLocation}</p></section>
     <details class="beach-background"><summary>${lang==='es'?'Fuentes y revisión':'Sources and review'}</summary><p class="trust">${t.defer}</p></details>
     <a class="btn beach-route" href="${reportHref(t.reportSubject + ": " + beach.name)}">${t.report}</a>
@@ -3563,43 +3561,94 @@ function openUnassessedBeach(beach){
 /* Fly so the subject lands in the strip the sheet is NOT covering. Without this
    Leaflet centres on the full map, the sheet then eats the bottom 60% of the
    screen, and the zone you just asked about ends up pushed off the top edge. */
-/* The existing continuous display corridor supplies selection geometry.
-   It is not an exact hazard boundary. No ambient tint, perimeter or end caps. */
-var bandZone=null;
-var bandLayer=null;
+/* Approximate danger bands use the existing coastal polygons. The selected
+   beach receives a stronger fill without obscuring neighboring bands. */
+let bandZone=null;
 function openBeach(z){
   if(!z)return;
+  track('beach');
   navigateFromOverview(()=>z.character?openZone(z):openUnassessedBeach(z));
 }
 const BAND_PANE='cgBandPane';
 map.createPane(BAND_PANE).style.zIndex=350;
 map.getPane(BAND_PANE).style.pointerEvents='none';
-const bandFeatures=new Map();
-let bandsReady=false;
-const bandColor=z=>z.character?({high:'#ef343c',moderate:'#f5bb27',low:'#26b57d'})[tierOf(z)]:'#9aa7b0';
-const bandShape=(feature,style)=>L.geoJSON(feature,{pane:BAND_PANE,style,interactive:false});
-function drawBand(z,selected,group){
-  const features=bandFeatures.get(z.id);
-  if(!features)return;
-  if(!selected)return;
-  bandShape(features.band,{stroke:false,fill:true,fillColor:bandColor(z),
-    fillOpacity:z.character?.40:.22,className:'cg-selected-area'}).addTo(group);
+const bandLayers=new Map();
+function installBandShoreGap(shorelines){
+  if(!shorelines.length)return;
+  const maskLine=L.polyline(shorelines,{pane:BAND_PANE,color:'#000',opacity:1,
+    smoothFactor:.25,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
+  const path=maskLine.getElement();
+  if(!path){maskLine.remove();return;}
+  // Let Leaflet project and clip the mask path alongside the original polygons.
+  // Luminance masking exposes the unshaded imagery, without painting a line
+  // over the coast or changing the coordinates of a mapped danger band.
+  const svg=path.ownerSVGElement, bandGroup=path.parentElement;
+  const svgNode=name=>document.createElementNS('http://www.w3.org/2000/svg',name);
+  const defs=svgNode('defs'),mask=svgNode('mask'),area=svgNode('rect');
+  mask.id='cg-band-shore-gap';
+  mask.setAttribute('maskUnits','userSpaceOnUse');
+  area.setAttribute('fill','#fff');
+  mask.append(area,path);
+  defs.append(mask);
+  svg.prepend(defs);
+  const syncMask=()=>{
+    const view=svg.viewBox.baseVal;
+    for(const name of ['x','y','width','height']){
+      mask.setAttribute(name,view[name]);
+      area.setAttribute(name,view[name]);
+    }
+    // At close zoom keep a narrow screen gap. At wider zoom cap its physical
+    // width so the approximate 120 m band stays readable across the coast.
+    const gap=Math.min(8,18/CGGeom.MPP(map.getZoom()));
+    if(gap<1.5){bandGroup.removeAttribute('mask');return;}
+    bandGroup.setAttribute('mask','url(#cg-band-shore-gap)');
+    maskLine.setStyle({weight:gap*2});
+  };
+  map.getRenderer(maskLine).on('update',syncMask);
+  syncMask();
+}
+function bandStyle(id,status){
+  const color=CGDanger.colors[CGDanger.score(id,status)-1];
+  return {color,weight:2,opacity:.85,fill:true,fillColor:color,
+    fillOpacity:bandZone?.id===id ? .70 : .55,className:'cg-danger-band'};
+}
+function restyleBands(){
+  if(!bandLayers.size)return;
+  const status=ratingDays()[0].status;
+  for(const [id,layer] of bandLayers) layer.setStyle(bandStyle(id,status));
+}
+function drawBands(data){
+  const status=ratingDays()[0].status;
+  const guides=new Map();
+  for(const feature of data.features){
+    const {id,kind,side}=feature.properties;
+    if(kind!=='offshore'&&kind!=='cap')continue;
+    if(!guides.has(id))guides.set(id,{});
+    guides.get(id)[kind==='cap'?side:kind]=feature.geometry.coordinates[0];
+  }
+  const shorelines=[];
+  for(const feature of data.features){
+    const {id,kind}=feature.properties;
+    if(kind!=='band'||CGDanger.score(id,status)==null||bandLayers.has(id))continue;
+    const style=bandStyle(id,status);
+    const layer=L.geoJSON(feature,{pane:BAND_PANE,style,interactive:false}).addTo(sourceLayers.danger_bands);
+    bandLayers.set(id,layer);
+    const guide=guides.get(id);
+    if(!guide)continue;
+    const shore=CGGeom.bandShoreline(feature.geometry.coordinates[0],guide.west,guide.east,guide.offshore);
+    if(shore.length)shorelines.push(shore.map(([lng,lat])=>[lat,lng]));
+  }
+  installBandShoreGap(shorelines);
 }
 function clearBand(){
-  if(bandLayer){bandLayer.remove();bandLayer=null;}
-  bandZone=null;
-  drawAmbientBands();
+  showBand(null);
 }
 function showBand(z){
-  if(bandLayer){bandLayer.remove();bandLayer=null;}
   bandZone=z||null;
-  drawAmbientBands();
-  if(!z||!bandsReady)return;
-  bandLayer=L.layerGroup().addTo(map);
-  drawBand(z,true,bandLayer);
+  restyleBands();
 }
 const provisionalTargets=[];
-function drawAmbientBands(){
+function drawProvisionalTargets(){
   // Preserve selection targets for unassessed beaches without drawing a border.
   if(!zonesReady||provisionalTargets.length)return;
   UNASSESSED_BEACHES.forEach(z=>{
@@ -3608,21 +3657,9 @@ function drawAmbientBands(){
       .on('click',()=>openBeach(z)));
   });
 }
-map.on('zoomend moveend',drawAmbientBands);
 fetch('data/coast-bands.geojson')
   .then(r=>r.ok?r.json():Promise.reject(r.status))
-  .then(gj=>{
-    gj.features.forEach(feature=>{
-      const id=feature.properties.id;
-      if(!bandFeatures.has(id))bandFeatures.set(id,{caps:[]});
-      const entry=bandFeatures.get(id);
-      if(feature.properties.kind==='cap')entry.caps.push(feature);
-      else entry[feature.properties.kind]=feature;
-    });
-    bandsReady=true;
-    drawAmbientBands();
-    if(bandZone)showBand(bandZone);
-  })
+  .then(drawBands)
   .catch(error=>{console.warn('[cg] coast bands did not load:',error);say(T[lang].bandFailed,60000);});
 
 function flyClear(bounds, opts){
@@ -3652,6 +3689,7 @@ function flyClear(bounds, opts){
 }
 
 function openPost(p){
+  track('rescue');
   const render = ()=>{
     const t = T[lang];
     /* The deferral renders here too, and it is not boilerplate. This sheet says
@@ -3736,6 +3774,7 @@ function legendHTML(){
 }
 
 function openLegend(){
+  track('legend');
   const render=()=>`<div class="legend-page"><h2 id="sheet-title" tabindex="-1">${T[lang].legendTitle}</h2>
     ${legendLayerContent()}
     <p class="legend-guidance">${T[lang].defer}</p>${sheetFoot()}</div>`;
@@ -3747,9 +3786,11 @@ function openLegend(){
    can find a hotel or a supermarket, or switch them all off to see the water. */
 const PLACE_CATEGORIES = ['stay','eat','shop','landmark','other'];
 const sourceLayerDefs = [
+  ['danger_bands','strong_current_area','Franjas de peligro','Danger bands','safety'],
   ['hazards','rip_current','Corrientes de resaca','Rip currents','safety'],
   ['references','source_image','Imágenes de referencia','Reference images','access'],
   ['rescue','rescue_station','Equipo de rescate','Rescue equipment','safety'],
+  ['medical','medical_station','Estaciones médicas','Medical stations','safety'],
   ['places_stay','place_stay','Hospedaje','Places to stay','places'],
   ['places_eat','place_eat','Comer y beber','Food and drink','places'],
   ['places_shop','place_shop','Tiendas y servicios','Shops and services','places'],
@@ -3766,6 +3807,7 @@ Object.values(postMarkers).forEach(marker=>sourceLayers.rescue.addLayer(marker))
 const ripReferenceMarkers = [];
 const referenceImages = [];
 function openRipReference(ref){
+  track('reference');
   const render = ()=>{
     const es = lang === 'es';
     const areaOnly = ref.alignment !== 'imagery_matched';
@@ -3831,7 +3873,7 @@ function legendLayerContent(){
       <div class="source-layer-grid">${sourceLayerDefs.filter(d=>d[4]===sec).map(([id,icon,esName,enName])=>`<label>
       <input type="checkbox" data-source-layer="${id}" ${sourceLayerState[id]?'checked':''}>
       ${id==='access'?'<span class="legend-road" aria-hidden="true"><svg viewBox="0 0 32 28"><path d="M3 8h26M3 20h26" stroke="#314e5b" stroke-width="4"/><path d="M3 8h26" stroke="#deedf0" stroke-width="2"/><path d="M3 20h26" stroke="#f3f6f5" stroke-width="2" stroke-dasharray="4 5"/></svg></span>':CGSymbols.badge(icon, id.startsWith('places_')?'place-badge':'')}<span>${es?esName:enName}</span></label>`).join('')}</div>
-      ${sec==='safety'?`<div class="legend-areas"><h4>${es?'Áreas costeras de referencia':'Coastal reference areas'}</h4><ul><li><i class="risk-high" aria-hidden="true"></i>${es?'Riesgo alto':'High risk'}</li><li><i class="risk-moderate" aria-hidden="true"></i>${es?'Moderado':'Moderate'}</li><li><i class="risk-low" aria-hidden="true"></i>${es?'Precaución':'Caution'}</li><li><i class="risk-unknown" aria-hidden="true"></i>${es?'Sin evaluar':'Not assessed'}</li></ul></div>`:''}</section>`).join('')}
+      ${sec==='safety'?`<div class="legend-areas"><h4>${es?'Escala de peligro':'Danger scale'}</h4>${ratingScale()}<p class="rating-note">${es?'1 menor peligro · 5 mayor peligro':'1 lowest danger · 5 highest danger'}</p><p class="rating-note">${es?'Las franjas son aproximadas.':'Danger bands are approximate.'}</p></div>`:''}</section>`).join('')}
     <details class="key-data"><summary><span>${es?'Ver fuentes y precisión':'View sources & accuracy'}</span>${CGSymbols.svg('next')}</summary>
       <p>${es?'Lugares y caminos: datos de OpenStreetMap; algunos lugares aún son estimados. Las flechas se ajustan a la costa GPS desde el documento original, pero no indican corrientes actuales. Los puntos de equipo aportados por AJ fueron reportados como instalados; no se verificó su disponibilidad actual. Los caminos no confirman acceso.':'Places and roads: OpenStreetMap data; some places remain estimated. Arrows follow the GPS coast from the source document, but do not show live currents. Equipment pins supplied by AJ were reported as installed; current availability was not verified. Roads do not confirm access.'} <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p>
     </details>`;
@@ -3945,7 +3987,7 @@ function titleChip(mark, text){
 function cardHTML(z){
   const t = T[lang];
   return `<button class="card" data-id="${z.id}" aria-current="false">
-      ${CGSymbols.badge(z.character.class, "beach-symbol")}
+      ${ratingBadge(z.id)}
       <span class="beach-copy">
       <span class="nm">${z.name[lang]}</span>
       <span class="beach-status">${t[instructionKey(z)]}</span>
@@ -3962,7 +4004,7 @@ function buildPicker(){
   // never replaces the character label.
   const cards = ZONES.map(cardHTML).join("") + UNASSESSED_BEACHES.map(b=>`
     <button class="card unassessed" data-id="${b.id}" aria-current="false">
-      ${CGSymbols.badge('unknown', 'beach-symbol')}
+      ${ratingBadge(b.id)}
       <span class="beach-copy"><span class="nm">${b.name}</span>
       <span class="beach-status">${t.unassessedStatus}</span></span>
       ${CGSymbols.svg('next')}
@@ -4310,6 +4352,13 @@ function setLang(l){
     marker.options.title = ref.name[l];
     if(marker._icon) marker._icon.title = ref.name[l];
   });
+  projectedDetail.forEach(({layer,kind,number})=>{
+    if(kind!=='medical_station')return;
+    const title=medicalStationLabel(number);
+    layer.options.title=title;
+    const node=layer.getElement();
+    if(node){node.title=title;node.setAttribute('aria-label',title);}
+  });
   if(stationsReady){
     Object.entries(postMarkers).forEach(([id, m])=>{
       const post = POSTS.find(x=>x.id === id);
@@ -4405,19 +4454,12 @@ function openAnnot(kind, f){
   openSheet(render(), ()=>{ setSheetContent(render()); });
 }
 
-function dangerLabel(beach, compact=false){
-  const es=lang==='es';
-  if(!beach?.character)return es?'Sin evaluar':'Not assessed';
-  const tier=tierOf(beach);
-  if(compact)return tier==='high'?(es?'Riesgo alto':'High risk'):tier==='moderate'?(es?'Riesgo moderado':'Moderate risk'):(es?'Precaución':'Caution');
-  return (es?'Riesgo de referencia: ':'Reference risk: ')+(tier==='high'?(es?'alto':'high'):tier==='moderate'?(es?'moderado':'moderate'):(es?'precaución':'caution'));
-}
 function refreshDangerLabels(){
   [...zoneLabels,...unassessedLabels].forEach((marker,i)=>{
     const beach=[...ZONES,...UNASSESSED_BEACHES][i];
     const name=beach.character?beach.name[lang]:beach.name;
     marker.setIcon(L.divIcon({className:'lbl zone area-label',iconSize:[136,42],iconAnchor:[68,21],
-      html:`<strong>${sourceEsc(name)}</strong><span class="area-risk ${beach.character?tierOf(beach):'unknown'}">${dangerLabel(beach,true)}</span>`}));
+      html:`<strong>${sourceEsc(name)}</strong>${ratingBadge(beach.id,'area-risk')}`}));
     marker.fire('add');
   });
   restyleLabels();
@@ -4442,6 +4484,7 @@ function accessName(point){
 }
 function clearAccessPath(){if(selectedAccessPath){selectedAccessPath.remove();selectedAccessPath=null;}}
 function openAccess(point,poster=null){
+  track('access');
   if(!poster){const sign=signposts.find(item=>item.accessId===point.id);if(sign)poster=CGSignposts.resolve(sign.id,signposts,accessPoints,referenceImages);}
   clearAccessPath();
   const beach=[...ZONES,...UNASSESSED_BEACHES].find(b=>b.id===point.beach);
@@ -4455,10 +4498,10 @@ function openAccess(point,poster=null){
       <p class="access-note">${es?'Punto de acceso cartografiado. Posición y acceso público pendientes de confirmación en campo.':'Mapped access point. Position and public access await field confirmation.'}</p>
       ${reference?`<section class="info-section trailhead-reference"><h3>${es?'Al final del sendero':'At the end of the trail'}</h3><figure class="rip-reference-figure"><a class="reference-media is-loading" aria-busy="true" style="aspect-ratio:${reference.width}/${reference.height}" href="${sourceEsc(reference.image)}" target="_blank" rel="noopener" aria-label="${es?'Abrir imagen completa':'Open full image'}"><span class="reference-image-status" role="status">${es?'Cargando imagen…':'Loading image…'}</span><img src="${sourceEsc(reference.image)}" width="${reference.width}" height="${reference.height}" alt="${sourceEsc(reference.name[lang])}"></a><figcaption>${es?'Imagen de referencia. No muestra las condiciones de hoy.':'Reference image. It does not show today’s conditions.'}</figcaption></figure></section>`:''}
       <section class="beach-safety access-risk ${beach?.character?tierOf(beach):'unknown'}" aria-label="${es?'Seguridad en la playa':'Beach safety'}">
-      ${beach?.character?`<div class="statuscard ${tierOf(beach)}" data-zone="${beach.id}">${statusCardInner(beach)}</div>`:`<strong>${dangerLabel(beach)}</strong><p>${es?'No hay evaluación de esta playa.':'No assessment is available for this beach.'}</p>`}
+      ${beach?.character?`<div class="statuscard ${tierOf(beach)}" data-zone="${beach.id}">${statusCardInner(beach)}</div>`:`<strong>${beach?ratingBadge(beach.id):(es?'Sin guía local':'Local guidance unavailable')}</strong><p>${es?'No hay evaluación de esta playa.':'No assessment is available for this beach.'}</p>`}
       ${renderSwimAdvisory(beach?.id,true,true)}</section>
       <div class="actions"><button class="btn" data-area="${point.beach}">${es?'Ver toda la playa':'View the whole beach'}</button><a class="btn" href="tel:911">${es?'Llamar al 911':'Call 911'}</a></div>
-      ${renderForecastPanel(beach?.id,false,'swell',true)}
+      ${renderForecastPanel(beach?.id)}
       <details class="qr-link info-details"><summary><span>${es?'Ver enlace QR de este acceso':'View QR link for this access point'}</span>${CGSymbols.svg('next')}</summary>
       <label>${es?'Enlace de esta versión':'Link to this version'}<input readonly value="${sourceEsc(qr.href)}" aria-label="${es?'Enlace QR':'QR link'}"></label>
       <button class="btn" data-copy-access>${es?'Copiar enlace':'Copy link'}</button>
@@ -4503,18 +4546,21 @@ function scheduleMarkerLayout(){
     map.eachLayer(layer=>{if(layer instanceof L.Marker&&layer.getElement())markerByNode.set(layer.getElement(),layer);});
     document.querySelectorAll('#map .leaflet-marker-icon').forEach(node=>{
       const rescue=node.classList.contains('projected-rescue')||!!node.querySelector('.station-marker');
+      const medical=node.classList.contains('projected-medical');
       const access=node.classList.contains('access-marker');
       const place=node.classList.contains('projected-place');
       const reference=node.classList.contains('rip-reference-marker');
-      if(!rescue&&!access&&!place&&!reference)return;
+      if(!rescue&&!medical&&!access&&!place&&!reference)return;
       const box=node.getBoundingClientRect();
       if(!box.width||!box.height)return; // Disabled layers and zoom-ineligible markers reserve no space.
-      entries.push({id:node,x:box.x+box.width/2,y:box.y+box.height/2,size:Math.max(box.width,box.height),
-        priority:rescue?100:access?50:reference?30:10,required:rescue,marker:markerByNode.get(node)});
+      const offset=node.cgMedicalOffset;
+      entries.push({id:node,x:box.x+box.width/2-(offset?.x||0),y:box.y+box.height/2-(offset?.y||0),size:Math.max(box.width,box.height),
+        priority:rescue?100:medical?90:access?50:reference?30:10,required:rescue||medical,rescue,medical,marker:markerByNode.get(node)});
     });
-    const rescueGroups=CGGeom.groupMarkers(entries.filter(e=>e.required));
+    const rescueEntries=entries.filter(e=>e.rescue);
+    const rescueGroups=CGGeom.groupMarkers(rescueEntries);
     const representatives=new Set(rescueGroups.map(g=>g.anchor.id));
-    for(const entry of entries.filter(e=>e.required)){
+    for(const entry of rescueEntries){
       const node=entry.id;
       node.querySelector('.rescue-count')?.remove();
       node.classList.remove('rescue-group');node.cgRescueGroup=null;
@@ -4529,9 +4575,26 @@ function scheduleMarkerLayout(){
       badge.textContent=group.members.length;badge.setAttribute('aria-hidden','true');node.append(badge);
       node.setAttribute('aria-label',lang==='es'?`${group.members.length} estaciones de rescate. Ampliar`:`${group.members.length} rescue stations. Expand`);
     }
-    const candidates=entries.filter(e=>!e.required||representatives.has(e.id))
-      .map(e=>e.required?{...e,size:56}:e);
-    const shown=new Set(CGGeom.declutterMarkers(candidates));
+    const candidates=entries.filter(e=>!e.rescue||representatives.has(e.id));
+    const stations=candidates.filter(e=>e.rescue).map(e=>e.id.cgRescueGroup?{...e,size:56}:e);
+    for(const entry of candidates){
+      if(!entry.medical)continue;
+      const {id:node}=entry;
+      const offset=CGGeom.offsetFromMarkers(entry,stations);
+      const {x,y}=offset;
+      const shifted=x!==0||y!==0;
+      if(shifted){
+        node.style.setProperty('--medical-offset-x',x+'px');
+        node.style.setProperty('--medical-offset-y',y+'px');
+        node.style.setProperty('--medical-leader-length',Math.hypot(x,y)+'px');
+        node.style.setProperty('--medical-leader-angle',Math.atan2(-y,-x)+'rad');
+        entry.x+=x;entry.y+=y;
+      }
+      node.classList.toggle('medical-offset',shifted);
+      node.cgMedicalOffset=offset;
+      stations.push(entry);
+    }
+    const shown=new Set(CGGeom.declutterMarkers(candidates.map(e=>e.rescue?{...e,size:56}:e)));
     for(const {id:node} of entries){
       const hidden=!shown.has(node),wasHidden=node.classList.contains('cg-marker-suppressed');
       if(hidden&&!wasHidden)node.cgTabIndex=node.getAttribute('tabindex');
@@ -4588,11 +4651,15 @@ let projectedLoaded = false;
 const projectedNames = {
   rip_current:['Corriente de resaca','Rip current'],
   rescue_station:['Equipo de rescate','Rescue equipment'],
+  medical_station:['Estación médica','Medical station'],
   proposed_rescue_station:['Equipo propuesto','Proposed equipment'],
   proposed_cg_station:['Estación CG propuesta','Proposed CG station'],
   unclassified_facility:['Símbolo sin definir','Undefined symbol'],
   location:['Referencia','Place']
 };
+function medicalStationLabel(number){
+  return projectedNames.medical_station[lang==='es'?0:1]+(number?' '+number:'');
+}
 function sourceEsc(value){
   return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 }
@@ -4609,26 +4676,31 @@ function sourcePopup(f,compact=false){
     const label=sourcePlaceLabel(p,es);
     const note=p.registration==='osm_named_place'
       ? (es?'Ubicación en OpenStreetMap':'OpenStreetMap location')
-      : (es?'Posición estimada del documento':'Estimated document position');
+      : p.registration==='review_screenshot'
+        ? (es?'Ubicación aproximada del reporte':'Approximate reported location')
+        : (es?'Posición estimada del documento':'Estimated document position');
     const def=sourceLayerDefs.find(d=>d[0]==='places_'+(p.category||'other'));
     const cat=def?(es?def[2]:def[3]):'';
     return compact?`${cat?sourceEsc(cat)+' · ':''}${note}`:`<strong>${sourceEsc(label)}</strong><br><small>${cat?sourceEsc(cat)+' · ':''}${note}</small>`;
   }
   const note=p.registration==='aj_google_maps_pin'
     ? (es?'Ubicación aportada por AJ; equipo reportado como instalado.':'Location supplied by AJ; equipment reported as installed.')
+    : p.registration==='review_pin'
+      ? p.position_approximate ? (es?'Punto reportado aproximado.':'Approximate reported pin.') : (es?'Punto reportado en la revisión.':'Pin supplied during review.')
     : proposed ? (es?'Propuesto, no disponible':'Proposed, not available')
     : p.kind==='unclassified_facility' ? (es?'Servicio no identificado':'Service unknown')
     : (es?'Posición aproximada':'Approximate position');
   return compact?note:`<strong>${sourceEsc(names[es?0:1])}${p.kind!=='rescue_station'&&p.number?' '+sourceEsc(p.number):''}</strong><br><small>${note}</small>`;
 }
 function openSourceFeature(f){
-  const p=f.properties;
+  const p=f.properties, medical=p.kind==='medical_station';
+  if(medical || p.kind==='rescue_station') track(medical?'medical':'rescue');
   const render=()=>{
     const es=lang==='es',rescue=p.kind==='rescue_station',place=p.kind==='location';
     const title=place?sourcePlaceLabel(p,es):(projectedNames[p.kind]?.[es?0:1]||(es?'Anotación':'Annotation'))+(!rescue&&p.number?' '+p.number:'');
     const summary=rescue?(es?'Disponibilidad sin confirmar':'Availability unconfirmed'):p.kind==='rip_current'?(es?'Corriente de referencia':'Reference current'):(es?'Referencia del mapa':'Map reference');
     return `<div class="info-page ${rescue?'rescue-page':''}"><h2 id="sheet-title" tabindex="-1">${sourceEsc(title)}</h2>
-      ${rescue?rescueStatus():`<div class="info-summary ${p.kind==='rip_current'?'info-danger':'info-neutral'}"><div class="info-label">${CGSymbols.svg(place?'place_'+(p.category||'other'):'rip_current')}<strong>${summary}</strong></div><p>${sourcePopup(f,true)}</p></div>`}
+      ${medical?`<div class="info-summary info-neutral"><div class="info-label">${CGSymbols.svg('medical_station')}<strong>${es?'Equipo médico reportado':'Reported medical equipment'}</strong></div><p>${es?'Desfibrilador externo automático (DEA) y kit de trauma. Ubicación aproximada; acceso y disponibilidad sin confirmar.':'Automated external defibrillator (AED) and trauma kit. Approximate location; access and availability unconfirmed.'}</p></div><a class="btn help-call" href="tel:911">${T[lang].call}</a>`:rescue?rescueStatus():`<div class="info-summary ${p.kind==='rip_current'?'info-danger':'info-neutral'}"><div class="info-label">${CGSymbols.svg(place?'place_'+(p.category||'other'):'rip_current')}<strong>${summary}</strong></div><p>${sourcePopup(f,true)}</p></div>`}
       ${rescue?`<section class="info-section rescue-record"><h3>${es?'Ubicación reportada':'Reported location'}</h3><p>${sourcePopup(f,true)}</p></section>`:''}
       ${p.kind==='rip_current'?`<section class="info-section"><h3>${es?'Si te arrastra una corriente':'If a current pulls you out'}</h3><p>${T[lang].escapeRip} ${T[lang].escapeHelp}</p><a class="btn help-call" href="tel:911">${T[lang].call}</a></section>`:''}
       <details class="info-details"><summary><span>${es?'Ver fuentes y precisión':'View sources & accuracy'}</span>${CGSymbols.svg('next')}</summary>
@@ -4649,7 +4721,7 @@ function openRoad(feature){
   openSheet(render(),()=>setSheetContent(render()));
 }
 function drawProjectedAnnotations(gj){
-  const categories={rip_current:'hazards',rescue_station:'rescue',
+  const categories={rip_current:'hazards',rescue_station:'rescue',medical_station:'medical',
     proposed_rescue_station:'proposals',proposed_cg_station:'proposals',unclassified_facility:'proposals',
     location:'places_other'};
   for(const f of gj.features){
@@ -4663,20 +4735,26 @@ function drawProjectedAnnotations(gj){
       const pts=g.coordinates.map(([lon,lat])=>[lat,lon]);
       const arrow=CGGeom.curveArrow(map,pts,{}).addTo(group);
       const hit=L.polyline(pts,{color:'#000',weight:20,opacity:0}).addTo(group).on('click',()=>openSourceFeature(f));
-      projectedArrows.push({arrow,pts,hit});
+      projectedArrows.push({arrow,pts,hit,reported:f.properties.registration==='review_screenshot'});
     }else{
       const symbol=kind==='location'?'place_'+(f.properties.category||'other'):kind==='unclassified_facility'?'unknown':kind;
       const [lon,lat]=g.coordinates;
-      const markerTitle=kind==='location'
-        ? sourcePlaceLabel(f.properties,lang==='es')
-        : (projectedNames[kind]?.[lang==='es'?0:1]||'Annotation');
+      const rescue=kind==='rescue_station', medical=kind==='medical_station', number=f.properties.number;
+      const markerTitle=medical?medicalStationLabel(number):kind==='location'
+        ? sourcePlaceLabel(f.properties,lang==='es') : (projectedNames[kind]?.[lang==='es'?0:1]||'Annotation');
+      const markerClass=rescue?'projected-rescue':medical?'projected-medical':kind==='location'?'projected-place':'';
+      const unnumbered=rescue && f.properties.registration==='aj_google_maps_pin' && !number;
       const marker=L.marker([lat,lon],{title:markerTitle,
-        zIndexOffset:kind==='rescue_station'?500:0,
-        icon:L.divIcon({className:'projected-marker '+(kind==='rescue_station'?'projected-rescue ':'')+(kind==='location'?'projected-place':
-          kind==='rescue_station' && f.properties.registration==='aj_google_maps_pin' && !f.properties.number?'aj-unnumbered':''),
-          iconSize:[44,44],iconAnchor:[22,22],html:CGSymbols.badge(symbol)+(kind!=='rescue_station'&&f.properties.number?`<span class="projected-number">${sourceEsc(f.properties.number)}</span>`:'')})
-      }).addTo(group).on('click',()=>openSourceFeature(f));
-      projectedDetail.push({layer:marker,kind});
+        zIndexOffset:rescue?500:medical?450:0,
+        icon:L.divIcon({className:`projected-marker ${markerClass}${unnumbered?' aj-unnumbered':''}`,
+          iconSize:[44,44],iconAnchor:[22,22],html:CGSymbols.badge(symbol)+(!rescue&&number?`<span class="projected-number">${sourceEsc(number)}</span>`:'')})
+      }).on('add',({target})=>target.getElement()?.setAttribute('aria-label',target.options.title))
+        .on('click',()=>openSourceFeature(f));
+      marker.addTo(group);
+      if(f.id==='cg:place/casa-mandala'){
+        marker.bindTooltip(sourceEsc(markerTitle),{permanent:true,direction:'top',offset:[0,-15],className:'cg-place-name'});
+      }
+      projectedDetail.push({layer:marker,kind,number,nameOnMap:f.id==='cg:place/casa-mandala'});
     }
   }
   map.on('zoomend',()=>{
@@ -4686,9 +4764,9 @@ function drawProjectedAnnotations(gj){
     const separation=zoom<16?56:36;
     document.body.classList.toggle('map-overview',zoom<15);
     const used=[];
-    projectedArrows.forEach(({arrow,pts,hit})=>{
+    projectedArrows.forEach(({arrow,pts,hit,reported})=>{
       const center=map.latLngToContainerPoint(pts[Math.floor(pts.length/2)]);
-      const visible=show&&used.every(p=>p.distanceTo(center)>separation);
+      const visible=show&&(reported||used.every(p=>p.distanceTo(center)>separation));
       if(visible){
         used.push(center);
         if(!sourceLayers.hazards.hasLayer(arrow))arrow.addTo(sourceLayers.hazards);
@@ -4700,21 +4778,38 @@ function drawProjectedAnnotations(gj){
         else sourceLayers.hazards.removeLayer(hit);
       }
     });
-    projectedDetail.forEach(({layer,kind})=>{
+    projectedDetail.forEach(({layer,kind,nameOnMap})=>{
       const visible=kind==='location'?zoom>=15.5:kind==='rescue_station'?true:zoom>=14;
       const node=layer.getElement();if(node)node.style.display=visible?'':'none';
+      if(nameOnMap && node) visible && zoom>=16 ? layer.openTooltip() : layer.closeTooltip();
     });
   });
   map.fire('zoomend');
 }
-fetch('data/full-map-geographic.geojson')
-  .then(r=>r.ok?r.json():Promise.reject(r.status))
-  .then(gj=>{
-    drawProjectedAnnotations(gj);
-    projectedLoaded = true;
-    if(legacyRipLayer){legacyRipLayer.clearLayers();ANNOT.rips.length=0;}
+function readMapData(url){
+  return fetch(url).then(response=>response.ok?response.json():Promise.reject(response.status));
+}
+const featureReviewReady=Promise.all([
+  readMapData('data/full-map-geographic.geojson'),
+  readMapData('data/review-features.geojson').catch(error=>{
+    console.warn('Review corrections unavailable',error);
+    return {features:[]};
   })
-  .catch(error=>console.warn('Full document annotations unavailable',error));
+]).then(([source,review])=>{
+  const features=new Map(source.features.map(f=>[f.id,f]));
+  for(const f of review.features){
+    const original=features.get(f.id);
+    features.delete(f.id);
+    features.set(f.id,{...f,properties:{...original?.properties,...f.properties}});
+  }
+  drawProjectedAnnotations({...source,features:[...features.values()]});
+  projectedLoaded=true;
+  if(legacyRipLayer){legacyRipLayer.clearLayers();ANNOT.rips.length=0;}
+  return features;
+}).catch(error=>{
+  console.warn('Full document annotations unavailable',error);
+  return new Map();
+});
 
 const osmRoadLayers = [];
 for(const [name,z] of [['cgRoadCasing',370],['cgRoadInk',371]]){
@@ -4973,16 +5068,83 @@ function seaDir(deg){
   return d[Math.round(((deg % 360) + 360) % 360 / 45) % 8];
 }
 
+function ratingDays(){
+  const now=Date.now()/1000;
+  const key=windFetchedAt+':'+Math.floor(now/60);
+  if(ratingDays.key!==key){
+    ratingDays.key=key;
+    ratingDays.outlook=CGDanger.outlook(windHourly,windFetchedAt,now,weatherData);
+  }
+  return ratingDays.outlook;
+}
+function ratingStyle(level){
+  return `style="--rating:${CGDanger.colors[level-1]}"`;
+}
+function ratingColor(id,status=ratingDays()[0].status){
+  return CGDanger.colors[CGDanger.score(id,status)-1];
+}
+function ratingBadge(id,extra=''){
+  const level=CGDanger.score(id,ratingDays()[0].status);
+  return `<span class="rating-pill ${extra}" data-rating-badge="${id}" ${ratingStyle(level)} aria-label="${lang==='es'?'Nivel de peligro':'Danger level'} ${level}/5">${level}/5</span>`;
+}
+function ratingScale(current){
+  return `<div class="rating-scale">${CGDanger.colors.map((color,index)=>{
+    const n=index+1;
+    return `<span class="rating-pill" style="--rating:${color}" ${n===current?'aria-current="true"':''}>${n}</span>`;
+  }).join('')}</div>`;
+}
+function ratingDetail(id){
+  const es=lang==='es', day=ratingDays()[0], base=CGDanger.beaches[id];
+  const level=CGDanger.score(id,day.status);
+  const note=day.status==='storm'
+    ? (es?`Base ${base}/5 · Tormentas previstas en la costa${base<5?' (+1)':''}.`:`Baseline ${base}/5 · Coastal thunderstorms forecast${base<5?' (+1)':''}.`)
+    : day.status==='unknown'
+      ? (es?'Nivel base · ajuste meteorológico no disponible.':'Baseline · weather adjustment unavailable.')
+      : (es?'Nivel base para esta playa.':'Baseline for this beach.');
+  return `<div class="rating-detail" ${ratingStyle(level)}>
+    <div class="rating-reading"><strong>${level}/5</strong><span>${es?'Nivel de peligro':'Danger level'}</span></div>
+    ${ratingScale(level)}<p class="rating-note">${note}</p>
+  </div>`;
+}
+function ratingOutlook(){
+  const es=lang==='es';
+  return `<div class="rating-days" aria-label="${es?'Pronóstico regional por día':'Regional forecast by day'}">
+    ${ratingDays().map((day,i)=>{
+      const date=i===0?(es?'Hoy':'Today'):(es?'Mañana':'Tomorrow');
+      const status=day.status==='storm'?(es?'Tormentas · +1 hasta 5':'Thunderstorms · +1 up to 5'):
+        day.status==='unknown'?(es?'Ajuste no disponible':'Adjustment unavailable'):(es?'Nivel base':'Baseline');
+      return `<div class="rating-day"><b>${date}</b><small>${status}</small></div>`;
+    }).join('')}
+  </div>`;
+}
+function refreshBeachRatings(){
+  const status=ratingDays()[0].status;
+  const key=lang+':'+status;
+  if(refreshBeachRatings.last===key)return;
+  refreshBeachRatings.last=key;
+  document.querySelectorAll('.card [data-rating-badge]').forEach(el=>{el.outerHTML=ratingBadge(el.dataset.ratingBadge);});
+  document.querySelectorAll('[data-rating-detail]').forEach(el=>{el.innerHTML=ratingDetail(el.dataset.ratingDetail);});
+  document.querySelectorAll('[data-safety-rating]').forEach(el=>{
+    el.style.setProperty('--rating',ratingColor(el.dataset.safetyRating,status));
+  });
+  refreshDangerLabels();
+  restyleBands();
+}
+
 function renderSea(){
   const es=lang==='es', marine=CGForecast.current(seaData), wind=CGForecast.current(weatherData),f=CGForecast.format;
-  const metric=(label,value,unit,primary=false)=>`<div class="${primary?'summary-primary':''}"><span>${label}</span><strong>${loadingValue(value,forecastBusy)} <small>${unit}</small></strong></div>`;
+  const gust=wind?.wind_gusts_10m;
+  const gustDetail=forecastIsReading(gust)
+    ? `<small class="summary-gust">${es?'Ráfagas hasta':'Gusts up to'} ${f(gust,'')} km/h</small>` : '';
+  const stormNotice=ratingDays()[0].status==='storm'
+    ? `<p class="summary-storm">${es?'Tormentas previstas en la costa. El nivel de peligro sube un punto, hasta 5.':'Coastal thunderstorms forecast. Danger ratings rise one level, up to 5.'}</p>` : '';
+  const metric=(label,value,unit,primary=false,detail='')=>`<div class="${primary?'summary-primary':''}"><span>${label}</span><strong>${loadingValue(value,forecastBusy)} <small>${unit}</small></strong>${detail}</div>`;
   seaEl.hidden=false;
   seaEl.className='sea forecast-summary';
   seaEl.innerHTML=`<div class="forecast-current">
     ${metric(es?'Oleaje':'Swell',f(marine?.swell_wave_height,'',1),'m',true)}
-    ${metric(es?'Viento':'Wind',f(wind?.wind_speed_10m,''),'km/h')}
-    ${metric(es?'Ráfagas':'Gusts',f(wind?.wind_gusts_10m,''),'km/h')}
-    </div><button class="forecast-open" data-forecast>${es?'Pronóstico costero · 24 horas':'Coastal forecast · 24 hours'}${CGSymbols.svg('external')}</button>`;
+    ${metric(es?'Viento':'Wind',f(wind?.wind_speed_10m,''),'km/h',false,gustDetail)}
+    </div><button class="forecast-open" data-forecast>${es?'Pronóstico costero · 24 horas':'Coastal forecast · 24 hours'}${CGSymbols.svg('external')}</button>${stormNotice}`;
 }
 function direction(value){return Number.isFinite(value)?seaDir(value):'-';}
 function renderSwimAdvisory(beachId,compact=false,integrated=false){
@@ -5011,14 +5173,17 @@ function renderSwimAdvisory(beachId,compact=false,integrated=false){
     'wave-wind-policy-unvalidated':'Wave and wind thresholds have not been validated for these beaches.'
   };
   if(integrated&&!a.thunderstorm){
+    const compactBeach=integrated==='beach';
+    const guidance=`<p class="safety-context">${a.decision==='lifeguard-required'?(es?'El horario publicado no confirma que haya guardavidas hoy.':'Published hours do not confirm lifeguards are present today.'):(es?'Sigue la señalización y a los guardavidas.':'Follow beach signs and lifeguards.')}</p>`;
+    const dataStatus=a.coverage!=='available'? `<p class="advisory-data">${es?'Datos incompletos o sin actualizar':'Incomplete or out-of-date data'}</p>` : '';
     return `<section class="swim-advisory advisory-integrated" aria-label="${es?'Detalles de seguridad':'Safety details'}">
-      <p class="safety-context">${a.decision==='lifeguard-required'?(es?'El horario publicado no confirma que haya guardavidas hoy.':'Published hours do not confirm lifeguards are present today.'):(es?'Sigue la señalización y a los guardavidas.':'Follow beach signs and lifeguards.')}</p>
+      ${compactBeach?'':guidance}
       <details class="advisory-reasons"><summary><span>${es?'Detalles de seguridad':'Safety details'}</span>${CGSymbols.svg('next')}</summary>
-        <div class="advisory-expanded"><p>${es?'El modelo no mide resacas.':'The model does not measure rip currents.'}</p>
+        <div class="advisory-expanded">${compactBeach?guidance:''}<p>${es?'El modelo no mide resacas.':'The model does not measure rip currents.'}</p>
         <ul>${a.reasons.filter(reason=>reason!=='lifeguard-required').map(reason=>`<li>${reasons[reason]}</li>`).join('')}</ul>
-        <p>${es?'Sin conexión automática con alertas oficiales ni datos de calidad del agua.':'Official alerts and water-quality data are not connected.'}</p></div>
+        <p>${es?'Sin conexión automática con alertas oficiales ni datos de calidad del agua.':'Official alerts and water-quality data are not connected.'}</p>${compactBeach?dataStatus:''}</div>
       </details>
-      ${a.coverage!=='available'?`<p class="advisory-data">${es?'Datos incompletos o sin actualizar':'Incomplete or out-of-date data'}</p>`:''}
+      ${compactBeach?'':dataStatus}
     </section>`;
   }
   if(compact&&!a.thunderstorm){
@@ -5048,86 +5213,135 @@ function renderSwimAdvisory(beachId,compact=false,integrated=false){
     </details>
   </section>`;
 }
-function renderForecastTrend(rows,m){
-  const es=lang==='es',t=CGForecast.trend(rows,m.key),f=CGForecast.format;
-  if(!t)return `<p class="trend-empty">${es?'Sin datos de esta variable':'No data for this metric'}</p>`;
-  const digits=m.key==='swell'?1:0,range=f(t.min,'',digits)+(t.min!==t.max?(es?' a ':' to ')+f(t.max,'',digits):'')+' '+m.unit;
-  const x=p=>(8+p.x*264).toFixed(2),y=p=>(16+p.y*76).toFixed(2);
-  const paths=t.segments.map(points=>{
-    const line=points.map((p,i)=>`${i?'L':'M'}${x(p)},${y(p)}`).join(' ');
-    return `${points.length>1?`<path class="trend-fill" d="${line} L${x(points.at(-1))},92 L${x(points[0])},92 Z"/><path class="trend-line" d="${line}"/>`:''}<circle class="trend-point" cx="${x(points.at(-1))}" cy="${y(points.at(-1))}" r="2.5"/>`;
-  }).join('');
-  const label=`${m.label}: ${range}. ${es?'Próximas 24 horas':'Next 24 hours'}.${t.missing?' '+(es?'Hay horas sin datos.':'Some hours have no data.'):''}`;
-  return `<figure class="forecast-trend" aria-label="${label}">
-    <figcaption><span class="trend-name">${CGSymbols.svg('forecast-'+m.key)}${m.label}</span><strong>${range}</strong></figcaption>
-    <svg viewBox="0 0 320 108" role="img" aria-label="${label}">
-      ${[0,.5,1].map(r=>`<path class="trend-grid" d="M8 ${16+r*76}H272"/><text x="286" y="${20+r*76}">${f(t.ceiling*(1-r),'',m.key==='swell'||!Number.isInteger(t.ceiling*(1-r))?1:0)}</text>`).join('')}
-      ${paths}
-    </svg>
-    <div class="trend-times">${[0,Math.floor((rows.length-1)/2),rows.length-1].map(i=>`<time datetime="${new Date(rows[i].time*1000).toISOString()}" title="${CGForecast.time(rows[i].time,lang)}">${CGForecast.clock(rows[i].time)}</time>`).join('')}</div>
-    ${t.missing?`<p class="trend-gap">${es?'Hay horas sin datos':'Some hours have no data'}</p>`:''}
-  </figure>`;
+const forecastMetrics = [
+  {key:'swell',es:'Oleaje',en:'Swell',unit:'m',digits:1},
+  {key:'wind',es:'Viento',en:'Wind',unit:'km/h',digits:0},
+  {key:'gust',es:'Ráfagas',en:'Gusts',unit:'km/h',digits:0}
+];
+// All three traces use one time axis and a separate zero-based scale for their units.
+const forecastPlotX = fraction => (5 + 173 * fraction).toFixed(2);
+const forecastPlotY = fraction => (13 + 47 * fraction).toFixed(2);
+const forecastIsReading = value => Number.isFinite(value) && value >= 0;
+const forecastTimestamp = row => new Date(row.time * 1000).toISOString();
+let selectedForecastTime;
+
+function forecastMetricReading(row,metric){
+  const {key,unit,digits}=metric;
+  const value=forecastIsReading(row[key]) ? CGForecast.format(row[key],'',digits) : null;
+  const from=key==='swell'?row.swellFrom:key==='wind'?row.windFrom:null;
+  const parts=[
+    ...(key==='swell'&&forecastIsReading(row.period)?[CGForecast.format(row.period,' s')]:[]),
+    ...(Number.isFinite(from)?[direction(from)]:[])
+  ];
+  return {
+    value:value===null?'-':`${value} <small>${unit}</small>`,
+    detail:value===null?(lang==='es'?'Sin datos':'No data'):parts.join(' · ')
+  };
 }
-function renderHourlyForecast(rows,selected='swell'){
-  const es=lang==='es',f=CGForecast.format;
-  const metrics=[{key:'swell',label:es?'Oleaje':'Swell',unit:'m'},{key:'wind',label:es?'Viento':'Wind',unit:'km/h'},{key:'gust',label:es?'Ráfagas':'Gusts',unit:'km/h'}];
-  return `<div class="hourly-card">
-    <div class="hourly-tabs" role="tablist" aria-label="${es?'Variable del pronóstico':'Forecast metric'}">${metrics.map(m=>`<button type="button" role="tab" id="hourly-tab-${m.key}" aria-controls="hourly-${m.key}" aria-selected="${selected===m.key}" tabindex="${selected===m.key?0:-1}" data-forecast-metric="${m.key}">${m.label}</button>`).join('')}</div>
-    ${metrics.map(m=>`<div class="hourly-panel" id="hourly-${m.key}" role="tabpanel" aria-labelledby="hourly-tab-${m.key}" ${selected!==m.key?'hidden':''}>
-      ${renderForecastTrend(rows,m)}
-      <div class="hourly-nav"><span>${es?'Por hora':'Hourly'}</span><button type="button" data-hourly-page="-1" aria-label="${es?'Horas anteriores':'Earlier hours'}">${CGSymbols.svg('next')}</button><button type="button" data-hourly-page="1" aria-label="${es?'Horas siguientes':'Later hours'}">${CGSymbols.svg('next')}</button></div>
-      <div class="hourly-scroll" tabindex="0" role="region" aria-label="${es?'Valores por hora':'Hourly values'}: ${m.label}">
-      <ol class="hourly-track">${rows.map((r,i)=>{
-        const detail=m.key==='swell'?f(r.period,' s')+' · '+direction(r.swellFrom):direction(r.windFrom);
-        const newDay=i===0||CGForecast.day(r.time,lang)!==CGForecast.day(rows[i-1].time,lang);
-        return `<li><span class="hourly-day">${newDay?CGForecast.day(r.time,lang):'&nbsp;'}</span><time datetime="${new Date(r.time*1000).toISOString()}" aria-label="${CGForecast.time(r.time,lang)}">${CGForecast.clock(r.time)}</time>
-          <strong>${f(r[m.key],'',m.key==='swell'?1:0)}<small>${m.unit}</small></strong>
-          <span class="hourly-detail">${detail}</span></li>`;
-      }).join('')}</ol></div>
-    </div>`).join('')}
+function renderForecastPlot(rows,metric,trend,ceiling,index,loading){
+  const grid=[13,36.5,60].map(y=>`<path class="instrument-gridline" d="M5 ${y}H178"/>`).join('');
+  if(!trend){
+    if(loading)return `<svg viewBox="0 0 216 72" aria-hidden="true">${grid}</svg>`;
+    return `<p class="instrument-no-data">${lang==='es'?'Sin serie disponible':'Series unavailable'}</p>`;
+  }
+  const traces=trend.segments.map(points=>{
+    const first=points[0],last=points.at(-1);
+    if(points.length===1)return `<circle class="instrument-isolated" cx="${forecastPlotX(first.x)}" cy="${forecastPlotY(1-first.value/ceiling)}" r="2.5"/>`;
+    const line=points.map((p,i)=>`${i?'L':'M'}${forecastPlotX(p.x)},${forecastPlotY(1-p.value/ceiling)}`).join(' ');
+    return `<path class="instrument-fill" d="${line} L${forecastPlotX(last.x)},60 L${forecastPlotX(first.x)},60 Z"/>
+      <path class="instrument-line" d="${line}"/>`;
+  }).join('');
+  const cursorX=forecastPlotX(index/(rows.length-1));
+  const value=rows[index][metric.key],hasValue=forecastIsReading(value);
+  const scale=CGForecast.format(ceiling,'',metric.digits);
+  const label=lang==='es'
+    ? `${metric.es}, escala de 0 a ${scale} ${metric.unit}.${trend.missing?' Hay horas sin datos.':''}`
+    : `${metric.en}, scale from 0 to ${scale} ${metric.unit}.${trend.missing?' Some hours have no data.':''}`;
+  return `<svg viewBox="0 0 216 72" role="img" aria-label="${label}" data-ceiling="${ceiling}">
+    ${grid}
+    ${traces}
+    <line class="instrument-cursor" x1="${cursorX}" x2="${cursorX}" y1="9" y2="63"/>
+    <circle class="instrument-dot" cx="${cursorX}" cy="${hasValue?forecastPlotY(1-value/ceiling):60}" r="4" ${hasValue?'':'hidden'}/>
+    <text x="188" y="16">${scale}</text><text x="188" y="63">0</text>
+  </svg>`;
+}
+function renderForecastInstrument(rows,loading=false){
+  const es=lang==='es', index=CGForecast.hourIndex(rows,selectedForecastTime),row=rows[index],last=rows.length-1;
+  const trends=Object.fromEntries(forecastMetrics.map(({key})=>[key,CGForecast.trend(rows,key)]));
+  const windCeiling=Math.max(trends.wind?.ceiling??0,trends.gust?.ceiling??0);
+  const step=(value,label,atBoundary)=>`<button type="button" data-forecast-step="${value}" aria-label="${label}"
+    aria-disabled="${loading||atBoundary}" ${loading?'disabled':''}>${CGSymbols.svg('next')}</button>`;
+  return `<div class="forecast-instrument${loading?' forecast-loading':''}" ${loading?'':`data-forecast-rows="${sourceEsc(JSON.stringify(rows))}"`}>
+    <div class="instrument-hour">
+      <div class="instrument-hour-value">
+        ${loading?`<span class="instrument-loading" role="status">${es?'Cargando pronóstico…':'Loading forecast…'}</span>`:
+          `<time datetime="${forecastTimestamp(row)}" aria-live="polite" aria-atomic="true"><span data-hour-day>${CGForecast.day(row.time,lang)}</span> <strong data-hour-clock>${CGForecast.clock(row.time)}</strong></time>`}
+      </div>
+      <div class="instrument-stepper">
+        ${step(-1,es?'Hora anterior':'Previous hour',index===0)}${step(1,es?'Hora siguiente':'Next hour',index===last)}
+      </div>
+      <div class="instrument-timeline">
+        <label for="forecast-hour">${es?'Hora del pronóstico':'Forecast hour'}</label>
+        <input id="forecast-hour" data-forecast-hour type="range" min="0" max="${last}" step="1" value="${index}"
+          aria-valuetext="${CGForecast.time(row.time,lang)}" ${loading?'disabled':''}>
+        <div class="instrument-times" ${loading?'aria-hidden="true"':''}>${[0,last].map(i=>
+          `<time datetime="${forecastTimestamp(rows[i])}" title="${CGForecast.time(rows[i].time,lang)}">${loading?'-':CGForecast.clock(rows[i].time)}</time>`
+        ).join('')}</div>
+      </div>
+    </div>
+    <div class="instrument-grid">${forecastMetrics.map(metric=>{
+      const reading=forecastMetricReading(row,metric);
+      const trend=trends[metric.key],ceiling=metric.key==='swell'?trend?.ceiling:windCeiling;
+      return `<div class="instrument-metric" data-metric="${metric.key}">
+        <div class="instrument-reading">
+          <span class="instrument-metric-name">${CGSymbols.svg('forecast-'+metric.key)}${metric[lang]}</span>
+          <strong data-metric-value>${reading.value}</strong><small data-metric-detail>${loading?'':reading.detail}</small>
+        </div>
+        <div class="instrument-plot">${renderForecastPlot(rows,metric,trend,ceiling,index,loading)}</div>
+      </div>`;
+    }).join('')}</div>
+    <p class="instrument-source">Open-Meteo · ${es?'El modelo no mide resacas.':'The model does not measure rip currents.'}</p>
   </div>`;
 }
-function selectForecastMetric(panel,key,focus=false){
-  if(!['swell','wind','gust'].includes(key)||panel.dataset.metric===key)return;
-  const previous=panel.querySelector('.hourly-panel:not([hidden]) .hourly-scroll'),left=previous?.scrollLeft||0;
-  panel.dataset.metric=key;
-  panel.querySelectorAll('[data-forecast-metric]').forEach(button=>{
-    const active=button.dataset.forecastMetric===key;button.setAttribute('aria-selected',active);button.tabIndex=active?0:-1;
-    if(active&&focus)button.focus({preventScroll:true});
-  });
-  panel.querySelectorAll('.hourly-panel').forEach(view=>{
-    view.hidden=view.id!=='hourly-'+key;
-    if(!view.hidden){
-      view.querySelector('.hourly-scroll').scrollLeft=left;
-      if(!reducedMotion.matches)view.animate(desktop()?{opacity:[.65,1]}:{opacity:[.35,1],transform:['translateY(4px)','translateY(0)']},{duration:desktop()?160:180,easing:'ease-out'});
+function selectForecastHour(card,index){
+  if(!card?.dataset.forecastRows)return;
+  const rows=JSON.parse(card.dataset.forecastRows),row=rows[index];
+  if(!row)return;
+  selectedForecastTime=row.time;
+  const slider=card.querySelector('[data-forecast-hour]');
+  slider.value=index;
+  slider.setAttribute('aria-valuetext',CGForecast.time(row.time,lang));
+  const time=card.querySelector('.instrument-hour time');
+  time.dateTime=forecastTimestamp(row);
+  time.querySelector('[data-hour-day]').textContent=CGForecast.day(row.time,lang);
+  time.querySelector('[data-hour-clock]').textContent=CGForecast.clock(row.time);
+  card.querySelector('[data-forecast-step="-1"]').setAttribute('aria-disabled',index===0);
+  card.querySelector('[data-forecast-step="1"]').setAttribute('aria-disabled',index===rows.length-1);
+  const cursorX=forecastPlotX(index/(rows.length-1));
+  card.querySelectorAll('.instrument-metric').forEach(metricRow=>{
+    const metric=forecastMetrics.find(m=>m.key===metricRow.dataset.metric);
+    const reading=forecastMetricReading(row,metric);
+    metricRow.querySelector('[data-metric-value]').innerHTML=reading.value;
+    metricRow.querySelector('[data-metric-detail]').textContent=reading.detail;
+    const plot=metricRow.querySelector('svg[data-ceiling]');
+    if(!plot)return;
+    const cursor=plot.querySelector('.instrument-cursor'),dot=plot.querySelector('.instrument-dot');
+    cursor.setAttribute('x1',cursorX);
+    cursor.setAttribute('x2',cursorX);
+    const value=row[metric.key],hasValue=forecastIsReading(value);
+    dot.toggleAttribute('hidden',!hasValue);
+    if(hasValue){
+      dot.setAttribute('cx',cursorX);
+      dot.setAttribute('cy',forecastPlotY(1-value/Number(plot.dataset.ceiling)));
     }
   });
-  scheduleScrollCues();
 }
-function renderForecastLoading(selected='swell'){
-  const es=lang==='es',metrics=[['swell',es?'Oleaje':'Swell','m'],['wind',es?'Viento':'Wind','km/h'],['gust',es?'Ráfagas':'Gusts','km/h']];
-  const metric=metrics.find(m=>m[0]===selected)||metrics[0];
-  // Keep the eventual layout visible without drawing a fictitious trend.
-  return `<div class="hourly-card forecast-loading">
-    <div class="hourly-tabs loading-tabs" aria-hidden="true">${metrics.map(m=>`<span class="${m[0]===metric[0]?'is-selected':''}">${m[1]}</span>`).join('')}</div>
-    <figure class="forecast-trend loading-trend">
-      <figcaption><span class="trend-name">${CGSymbols.svg('forecast-'+metric[0])}${metric[1]}</span><span class="loading-status" role="status">${es?'Cargando pronóstico…':'Loading forecast…'}</span></figcaption>
-      <svg viewBox="0 0 320 108" aria-hidden="true" focusable="false">
-        <defs><radialGradient id="forecast-loading-wash"><stop stop-color="#80bbb5" stop-opacity=".18"/><stop offset="1" stop-color="#80bbb5" stop-opacity="0"/></radialGradient></defs>
-        <ellipse class="loading-plot-wash" cx="140" cy="76" rx="132" ry="48" fill="url(#forecast-loading-wash)"/>
-        ${[16,54,92].map(y=>`<path class="trend-grid" d="M8 ${y}H272"/>`).join('')}
-      </svg>
-      <div class="trend-times loading-time-guides" aria-hidden="true"><i></i><i></i><i></i></div>
-    </figure>
-    <div class="hourly-nav loading-hourly-label" aria-hidden="true"><span>${es?'Por hora':'Hourly'}</span></div>
-    <div class="loading-hours" aria-hidden="true">${Array.from({length:4},()=>`<div><i></i><strong>-<small>${metric[2]}</small></strong><i></i></div>`).join('')}</div>
-  </div>`;
-}
-function renderForecastPanel(beachId='',coast=false,selected='swell',detail=false){
-  const modern=coast||detail;
 
-  const es=lang==='es', rows=(modern?CGForecast.hourlyRows:CGForecast.rows)(CGForecast.freshHourly(seaHourly,marineFetchedAt),CGForecast.freshHourly(windHourly,windFetchedAt)), f=CGForecast.format;
-  const available=rows.some(r=>r.swell!==null||r.wind!==null);
+function renderForecastPanel(beachId='',coast=false){
+  const es=lang==='es', now=Date.now()/1000, f=CGForecast.format;
+  const rows=CGForecast.hourlyRows(CGForecast.freshHourly(seaHourly,marineFetchedAt,now),
+    CGForecast.freshHourly(windHourly,windFetchedAt,now),now);
+  const available=rows.some(row=>forecastMetrics.some(metric=>forecastIsReading(row[metric.key])));
   const marine=CGForecast.current(seaData),wind=CGForecast.current(weatherData);
   const metric=(label,value,unit,detail,primary=false)=>`<div class="${primary?'forecast-primary':'forecast-secondary'}"><span>${primary?CGSymbols.svg('forecast-swell'):''}${label}</span><strong>${loadingValue(f(value,'',unit==='m'?1:0),forecastBusy)} <small>${unit}</small></strong>${detail?`<p>${detail}</p>`:''}</div>`;
   const current=coast?`<section class="forecast-now" aria-label="${es?'Pronóstico actual':'Current forecast'}">
@@ -5136,66 +5350,52 @@ function renderForecastPanel(beachId='',coast=false,selected='swell',detail=fals
     ${metric(es?'Viento':'Wind',wind?.wind_speed_10m,'km/h',wind?direction(wind.wind_direction_10m):'')}
     ${metric(es?'Ráfagas':'Gusts',wind?.wind_gusts_10m,'km/h','')}
     </div></section>`:'';
-  let previousDay='';
-  const tableRows=rows.map(r=>{
-    const day=CGForecast.day(r.time,lang),startDay=coast&&day!==previousDay;
-    previousDay=day;
-    return `${startDay?`<tr class="forecast-day"><th colspan="4">${day}</th></tr>`:''}<tr>
-      <th scope="row">${coast?CGForecast.clock(r.time):CGForecast.time(r.time,lang)}</th>
-      <td>${f(r.swell,coast?'':' m',1)}<small>${f(r.period,' s')} · ${direction(r.swellFrom)}</small></td>
-      <td>${f(r.wind,coast?'':' km/h')}<small>${direction(r.windFrom)}</small></td>
-      <td>${f(r.gust,coast?'':' km/h')}</td></tr>`;
-  }).join('');
-  return `<section class="area-forecast ${coast?'coast-forecast':detail?'beach-forecast':''}" data-variant="${coast?'coast':detail?'detail':'beach'}" data-metric="${selected}" data-beach="${sourceEsc(beachId||'')}" aria-label="${es?'Pronóstico de oleaje y viento':'Swell and wind forecast'}">
-    ${current}${detail?'':renderSwimAdvisory(beachId,modern)}
-    <div class="forecast-heading"><div><h3>${coast?(es?'Próximas 24 horas':'Next 24 hours'):detail?(es?'Pronóstico regional':'Regional forecast'):(es?'Oleaje y viento':'Swell and wind')}</h3>
+  return `<section class="area-forecast ${coast?'coast-forecast':'beach-forecast'}" data-variant="${coast?'coast':'detail'}" data-beach="${sourceEsc(beachId||'')}" aria-label="${es?'Pronóstico de oleaje y viento':'Swell and wind forecast'}">
+    ${current}${coast?renderSwimAdvisory(beachId,true)+ratingOutlook():''}
+    <div class="forecast-heading"><div><h3>${coast?(es?'Próximas 24 horas':'Next 24 hours'):(es?'Pronóstico regional':'Regional forecast')}</h3>
       <p class="forecast-period">${coast?(es?'Hora de Costa Rica':'Costa Rica time'):(es?'24 horas · hora de Costa Rica':'24 hours · Costa Rica time')}</p></div>
       <button class="forecast-refresh" data-refresh-forecast aria-label="${es?'Actualizar pronóstico':'Refresh forecast'}" title="${es?'Actualizar pronóstico':'Refresh forecast'}" ${forecastBusy?'aria-disabled="true" aria-busy="true"':''}>${CGSymbols.svg('refresh')}<span>${es?'Actualizar':'Refresh'}</span></button></div>
-    ${available?modern?renderHourlyForecast(rows,selected):`<div class="forecast-table-wrap" tabindex="0" role="region" aria-label="${es?'Tabla de pronóstico':'Forecast table'}"><table class="forecast-table">
-    <thead><tr><th>${es?'Hora':'Time'}</th><th>${es?'Oleaje':'Swell'}${coast?'<small>m</small>':''}</th><th>${es?'Viento':'Wind'}${coast?'<small>km/h</small>':''}</th><th>${es?'Ráfaga':'Gust'}${coast?'<small>km/h</small>':''}</th></tr></thead>
-    <tbody>${tableRows}</tbody></table></div>`
-    :forecastBusy?renderForecastLoading(selected):`<p role="status">${es?'Pronóstico no disponible. Comprueba tu conexión e inténtalo de nuevo.':'Forecast unavailable. Check your connection and try again.'}</p>`}
+    ${available||forecastBusy?renderForecastInstrument(rows,!available):`<p role="status">${es?'Pronóstico no disponible. Comprueba tu conexión e inténtalo de nuevo.':'Forecast unavailable. Check your connection and try again.'}</p>`}
     <details class="forecast-details"><summary><span>${es?'Ver fuentes y límites del pronóstico':'View forecast sources & limitations'}</span>${CGSymbols.svg('next')}</summary>
     <p class="forecast-scope forecast-limit">${es?'Modelo regional. No mide resacas.':'Regional model. No rip-current readings.'}</p>
     <p class="forecast-scope">${es?'Dirección de origen · - sin datos.':'Direction of origin · - no data.'} <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>
-    ${marineFetchedAt||windFetchedAt?`<p class="forecast-scope">${es?'Consultado':'Retrieved'}: swell ${marineFetchedAt?CGForecast.time(marineFetchedAt,lang):'-'}; ${es?'viento':'wind'} ${windFetchedAt?CGForecast.time(windFetchedAt,lang):'-'}.</p>`:''}
+    ${marineFetchedAt||windFetchedAt?`<p class="forecast-scope">${es?'Consultado':'Retrieved'}: ${es?'oleaje':'swell'} ${marineFetchedAt?CGForecast.time(marineFetchedAt,lang):'-'}; ${es?'viento':'wind'} ${windFetchedAt?CGForecast.time(windFetchedAt,lang):'-'}.</p>`:''}
     </details>
     ${forecastFailed?`<p role="status" class="forecast-scope">${es?'No se pudieron actualizar todos los datos. Revisa la hora de consulta.':'Some data could not be refreshed. Check the retrieval time.'}</p>`:''}
 
     </section>`;
 }
 function refreshForecastPanel(){
-  document.querySelectorAll('.area-forecast').forEach(panel=>{
-    const wasLoading=!!panel.querySelector('.forecast-loading');
-    const scroll=sheetBody.scrollTop, focused=panel.contains(document.activeElement);
-    const safety=sheetBody.querySelector('.beach-safety .swim-advisory');
-    const advisory=safety||panel.querySelector('.swim-advisory');
-    const whyOpen=advisory?.querySelector('.advisory-reasons')?.open, whyFocused=advisory?.querySelector('.advisory-reasons summary')===document.activeElement;
-    const forecastDetailsOpen=panel.querySelector('.forecast-details')?.open;
-    const forecastDetailsFocused=panel.querySelector('.forecast-details summary')===document.activeElement;
-    const beachId=panel.dataset.beach,metric=panel.dataset.metric||'swell';
-    if(safety)safety.outerHTML=renderSwimAdvisory(beachId,true,true);
-    const hourlyLeft=panel.querySelector('.hourly-panel:not([hidden]) .hourly-scroll')?.scrollLeft||0;
-    const metricFocus=panel.querySelector('[data-forecast-metric]:focus')?.dataset.forecastMetric;
-    const trackFocused=document.activeElement?.classList.contains('hourly-scroll');
-    panel.outerHTML=renderForecastPanel(beachId,panel.dataset.variant==='coast',metric,panel.dataset.variant==='detail');
-    const resolved=sheetBody.querySelector('.hourly-card:not(.forecast-loading)');
-    if(wasLoading&&resolved&&!reducedMotion.matches)resolved.animate({opacity:[.5,1]},{duration:220,easing:'ease-out'});
-    const newTrack=sheetBody.querySelector('.hourly-panel:not([hidden]) .hourly-scroll');
-    if(newTrack)newTrack.scrollLeft=hourlyLeft;
-    const why=sheetBody.querySelector('.advisory-reasons');
-    if(why)why.open=whyOpen;
-    const forecastDetails=sheetBody.querySelector('.forecast-details');
-    if(forecastDetails)forecastDetails.open=forecastDetailsOpen;
-    sheetBody.scrollTop=scroll;
-    if(metricFocus)sheetBody.querySelector(`[data-forecast-metric="${metricFocus}"]`)?.focus({preventScroll:true});
-    else if(trackFocused)newTrack?.focus({preventScroll:true});
-    else if(forecastDetailsFocused)forecastDetails?.querySelector('summary')?.focus({preventScroll:true});
-    else if(whyFocused)why?.querySelector('summary')?.focus({preventScroll:true});
-    else if(focused)sheetBody.querySelector('[data-refresh-forecast]')?.focus({preventScroll:true});
+  const panel=sheetBody.querySelector('.area-forecast');
+  // Keep the native slider in place in the middle of a drag.
+  if(!panel||panel.querySelector('[data-forecast-hour]:active'))return;
+  const active=document.activeElement,scroll=sheetBody.scrollTop;
+  const safety=sheetBody.querySelector('.beach-safety .swim-advisory');
+  const disclosures=['.advisory-reasons','.forecast-details'].map(selector=>{
+    const details=sheetBody.querySelector(selector);
+    return {selector,open:details?.open,focused:details?.querySelector('summary')===active};
   });
+  const beachId=panel.dataset.beach,coast=panel.dataset.variant==='coast';
+  const hourFocused=active?.matches('[data-forecast-hour]');
+  const stepFocused=active?.dataset.forecastStep;
+  const panelFocused=panel.contains(active);
+  if(safety)safety.outerHTML=renderSwimAdvisory(beachId,true,safety.closest('.zone-detail')?'beach':true);
+  panel.outerHTML=renderForecastPanel(beachId,coast);
+  const instrument=sheetBody.querySelector('.forecast-instrument:not(.forecast-loading)');
+  let focused=hourFocused?instrument?.querySelector('[data-forecast-hour]'):
+    stepFocused?instrument?.querySelector(`[data-forecast-step="${stepFocused}"]`):null;
+  for(const {selector,open,focused:hasFocus} of disclosures){
+    const details=sheetBody.querySelector(selector);
+    if(!details)continue;
+    details.open=Boolean(open);
+    if(hasFocus)focused=details.querySelector('summary');
+  }
+  if(panelFocused&&!focused)focused=sheetBody.querySelector('[data-refresh-forecast]');
+  sheetBody.scrollTop=scroll;
+  focused?.focus({preventScroll:true});
 }
 function openForecast(){
+  track('forecast');
   clearAccessPath(); sheetAddress("");
   const render=()=>`<div class="forecast-page"><h2 id="sheet-title" tabindex="-1">${lang==='es'?'Pronóstico de la costa':'Coastal forecast'}</h2>${renderForecastPanel('',true)}${sheetFoot()}</div>`;
   openSheet(render(),()=>{setSheetContent(render());});
@@ -5203,18 +5403,16 @@ function openForecast(){
 document.addEventListener('click',event=>{
   if(event.target.closest('[data-forecast]'))navigateFromOverview(openForecast);
   if(event.target.closest('[data-refresh-forecast]'))refreshForecast();
-  const page=event.target.closest('[data-hourly-page]');
-  if(page){const track=page.closest('.hourly-panel').querySelector('.hourly-scroll');track.scrollBy({left:Number(page.dataset.hourlyPage)*track.clientWidth*.8,behavior:reducedMotion.matches?'auto':'smooth'});}
-
-  const metric=event.target.closest('[data-forecast-metric]');
-  if(metric)selectForecastMetric(metric.closest('.area-forecast'),metric.dataset.forecastMetric);
+  const step=event.target.closest('[data-forecast-step]');
+  if(step&&step.getAttribute('aria-disabled')!=='true'){
+    const card=step.closest('.forecast-instrument');
+    const slider=card.querySelector('[data-forecast-hour]');
+    selectForecastHour(card,Number(slider.value)+Number(step.dataset.forecastStep));
+  }
 });
-document.addEventListener('keydown',event=>{
-  const tab=event.target.closest('[data-forecast-metric]');
-  if(!tab||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
-  event.preventDefault();const keys=['swell','wind','gust'],i=keys.indexOf(tab.dataset.forecastMetric);
-  const next=event.key==='Home'?0:event.key==='End'?2:(i+(event.key==='ArrowRight'?1:2))%3;
-  selectForecastMetric(tab.closest('.area-forecast'),keys[next],true);
+document.addEventListener('input',event=>{
+  const slider=event.target.closest('[data-forecast-hour]');
+  if(slider)selectForecastHour(slider.closest('.forecast-instrument'),Number(slider.value));
 });
 async function refreshForecast(){
   if(forecastBusy)return;
@@ -5229,10 +5427,10 @@ async function refreshForecast(){
     save(data);
   }));
   forecastBusy=false;forecastFailed=results.some(result=>result.status==='rejected');
-  renderSea();refreshForecastPanel();refreshWeatherPanel();measureDock();
+  renderSea();refreshBeachRatings();refreshForecastPanel();refreshWeatherPanel();measureDock();
 }
 setInterval(()=>{
-  refreshPostClock();renderSea();refreshForecastPanel();
+  refreshPostClock();renderSea();refreshBeachRatings();refreshForecastPanel();
   if(!document.hidden&&Date.now()-forecastAttemptAt>15*60*1000)refreshForecast();
 },60000);
 document.addEventListener('visibilitychange',()=>{
@@ -5460,7 +5658,20 @@ renderSaved();
   const b=UNASSESSED_BEACHES.find(x=>localId(x.id)===q.get("b"));
   const p=POSTS.find(x=>localId(x.id)===q.get("p"));
   // Fit immediately so late startup layout updates cannot interrupt a QR flight.
-  if(q.has("sign")){Promise.all([geomReady,accessReady,signpostsReady,referencesReady]).then(()=>openSignpost(q.get("sign")));}
+  if(LOCAL_PREVIEW && q.has('review')){
+    const [lat,lon]=q.get('review').split(',').map(Number);
+    if(lat>=9.5 && lat<=9.8 && lon>=-83 && lon<=-82.5){
+      Promise.all([geomReady,featureReviewReady]).then(([,features])=>{
+        if(features.has(q.get('mark'))) openSourceFeature(features.get(q.get('mark')));
+        map.stop();
+        const point=[lat,lon];
+        flyClear(L.latLngBounds([point]),{maxZoom:TILE_BOUNDS.contains(point)?17.75:14.25});
+        L.marker([lat,lon],{interactive:false,keyboard:false,zIndexOffset:1400,
+          icon:L.divIcon({className:'review-pin',iconSize:[44,44],iconAnchor:[22,22]})}).addTo(map);
+      });
+    }
+  }
+  else if(q.has("sign")){Promise.all([geomReady,accessReady,signpostsReady,referencesReady]).then(()=>openSignpost(q.get("sign")));}
   else if(q.has("a")){ Promise.all([geomReady,accessReady,referencesReady,signpostsReady]).then(()=>{ const point=accessPoints.find(x=>x.id===q.get("a")); if(point)openAccess(point); else say(lang==='es'?'Acceso no encontrado. Elige una playa.':'Access point not found. Choose a beach.',10000); }); }
   else if(z){ geomReady.then(()=>openBeach(z)); }
   else if(b){ geomReady.then(()=>openBeach(b)); }
