@@ -31,6 +31,11 @@
   const clock=value=>new Date(value*1000).toLocaleTimeString('en-GB',{timeZone:'America/Costa_Rica',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
   const day=(value,lang='es')=>new Date(value*1000).toLocaleDateString(lang==='es'?'es-CR':'en-GB',{timeZone:'America/Costa_Rica',weekday:'short',day:'numeric',month:'short'});
   const hourlyRows=(marine,wind,now=Date.now()/1000)=>rows(marine,wind,now,1,24);
+  function hourIndex(rows, selectedTime) {
+    if (!finite(selectedTime) || !rows.length) return 0;
+    // A refresh shifts the 24-hour window. Keep the chosen time if it is still inside it.
+    return Math.max(0, Math.min(rows.length - 1, Math.round((selectedTime - rows[0].time) / 3600)));
+  }
   // A zero-based plot. Missing hours split paths; never imply a measured bridge.
   function trend(rows,key){
     const valid=r=>finite(r.time)&&finite(r[key])&&r[key]>=0;
@@ -51,5 +56,5 @@
     if(segment.length)segments.push(segment);
     return {min,max,ceiling,start,end,segments,missing:rows.length-values.length};
   }
-  root.CGForecast = {current, rows, hourlyRows, freshHourly, format, time, clock, day, trend};
+  root.CGForecast = {current, rows, hourlyRows, freshHourly, format, time, clock, day, hourIndex, trend};
 })(typeof window === 'undefined' ? globalThis : window);

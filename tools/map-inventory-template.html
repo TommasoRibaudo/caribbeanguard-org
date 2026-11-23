@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caribbean Guard | Map inventory</title>
+<style>
+:root{color:#183846;background:#f6f8f6;font:16px/1.45 system-ui,sans-serif}*{box-sizing:border-box}
+main{max-width:1380px;padding:clamp(1rem,3vw,3rem);margin:auto}
+p{max-width:72ch} h1{margin:.15em 0;font:700 clamp(2rem,5vw,3.2rem)/1.1 Georgia,serif}
+.eyebrow{color:#396574;letter-spacing:.12em;font-size:.76rem;font-weight:750;text-transform:uppercase}
+nav,.controls{display:flex;gap:.7rem 1.2rem;align-items:center;flex-wrap:wrap;margin:1.1rem 0}
+a{color:#075e73;text-underline-offset:.18em;font-weight:650}label{font-size:.9rem;font-weight:650}
+input,select{min-height:44px;color:inherit;font:inherit}
+input[type=search],select{border:1px solid #a6bfbe;border-radius:6px;padding:.5rem;background:white}
+input[type=checkbox]{min-height:0}.table-wrap{overflow:auto;border:1px solid #bcd0ce;border-radius:10px;background:white}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:.91rem} th{background:#164755;color:white}
+td,th{padding:.7rem .85rem;vertical-align:top}td{border-top:1px solid #dce7e5}td:last-child{white-space:nowrap}
+tbody tr:nth-child(even){background:#f4f8f7}small{display:block;color:#46616c;overflow-wrap:anywhere;font-size:.78rem}
+.item{font-size:.72rem;border-radius:4px;background:#d9eee8;padding:.12rem .26rem;font-weight:750}
+[hidden]{display:none!important}:focus-visible{outline:3px solid #11728a;outline-offset:2px}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Caribbean Guard · Internal review</div>
+<h1>Coastal map inventory</h1>
+<p>Review source and location for each feature. Open the map links to inspect positions. Use the CSV to record decisions and future partner eligibility.</p>
+<nav aria-label="Review materials">
+<a href="http://localhost:5174/">Open coastal map</a>
+<a href="http://localhost:5174/mobile-preview.html">Phone preview</a>
+<a href="http://localhost:5180/mapa">Website preview</a>
+<a href="map-inventory.csv" download>Download review CSV</a>
+<a href="punta-uva-welcome.pdf">Punta Uva poster</a>
+<a href="calle-merlin-access.pdf">Calle Merlin poster</a>
+</nav>
+<div class="controls">
+<label>Search <input type="search" id="search" placeholder="Name, ID, or feedback item"></label>
+<label>Type <select id="type"><option value="">All types</option>%%TYPES%%</select></label>
+<label><input type="checkbox" id="feedback"> Feedback items only</label>
+<span role="status" id="count">%%TOTAL%% records</span>
+</div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Coastal feature inventory"><table>
+<thead><tr><th scope="col">Feature</th><th scope="col">Type</th><th scope="col">Status</th>
+<th scope="col">Coordinates</th><th scope="col">Evidence &amp; notes</th><th scope="col">Review</th></tr></thead>
+<tbody>%%ROWS%%</tbody></table></div>
+</main><script>
+const search=document.querySelector('#search'),type=document.querySelector('#type'),feedback=document.querySelector('#feedback');
+const rows=[...document.querySelectorAll('tbody tr')];
+const indexed=rows.map(row=>[row,(row.textContent+' '+row.dataset.review).toLowerCase()]);
+function apply(){
+  const q=search.value.trim().toLowerCase();
+  let count=0;
+  for(const [row,text] of indexed){
+    row.hidden=!(text.includes(q)&&(!type.value||row.dataset.type===type.value)&&(!feedback.checked||'feedback'in row.dataset));
+    if(!row.hidden)count++;
+  }
+  document.querySelector('#count').textContent=count+' of '+rows.length+' records';
+}
+for(const control of [search,type,feedback]) control.addEventListener('input',apply);
+</script></body></html>

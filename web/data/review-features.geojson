@@ -1,0 +1,306 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "source": "Caribbean Guard map review, 2026-11-23",
+    "note": "Matching IDs update the displayed projection while keeping source provenance."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "cg:review/puerto-viejo-rip",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -82.75555,
+            9.658024
+          ],
+          [
+            -82.755627,
+            9.6581
+          ],
+          [
+            -82.755698,
+            9.658186
+          ],
+          [
+            -82.755734,
+            9.658265
+          ],
+          [
+            -82.755808,
+            9.658332
+          ],
+          [
+            -82.755909,
+            9.658411
+          ],
+          [
+            -82.755986,
+            9.65847
+          ],
+          [
+            -82.756079,
+            9.658507
+          ],
+          [
+            -82.75614,
+            9.658556
+          ],
+          [
+            -82.756167,
+            9.658622
+          ],
+          [
+            -82.756167,
+            9.658751
+          ],
+          [
+            -82.756163,
+            9.658837
+          ],
+          [
+            -82.756116,
+            9.659075
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "rip_current",
+        "registration": "review_screenshot",
+        "review_item": 1,
+        "needs_confirmation": true,
+        "name": "Puerto Viejo"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pdf:rescue_station/290",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.724614,
+          9.643213
+        ]
+      },
+      "properties": {
+        "kind": "rescue_station",
+        "registration": "review_pin",
+        "review_item": 2,
+        "needs_confirmation": true,
+        "source_url": "https://www.google.com/maps?q=9.643213,-82.724614",
+        "position_approximate": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:rescue/review-03",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.725924,
+          9.643737
+        ]
+      },
+      "properties": {
+        "kind": "rescue_station",
+        "registration": "review_pin",
+        "review_item": 3,
+        "needs_confirmation": true,
+        "source_url": "https://www.google.com/maps?q=9.643737,-82.725924",
+        "position_approximate": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:rescue/review-04",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.698996,
+          9.637761
+        ]
+      },
+      "properties": {
+        "kind": "rescue_station",
+        "registration": "review_pin",
+        "review_item": 4,
+        "needs_confirmation": true,
+        "source_url": "https://www.google.com/maps?q=9.637761,-82.698996",
+        "position_approximate": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:rescue/review-05",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.690609,
+          9.640858
+        ]
+      },
+      "properties": {
+        "kind": "rescue_station",
+        "registration": "review_pin",
+        "review_item": 5,
+        "needs_confirmation": true,
+        "source_url": "https://www.google.com/maps?q=9.640858,-82.690609",
+        "position_approximate": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:rescue/review-06",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.6833263,
+          9.640257
+        ]
+      },
+      "properties": {
+        "kind": "rescue_station",
+        "registration": "review_pin",
+        "review_item": 6,
+        "needs_confirmation": true,
+        "source_url": "https://www.google.com/maps?q=9.640257,-82.6833263",
+        "position_approximate": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:rescue/review-07",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.678099,
+          9.635966
+        ]
+      },
+      "properties": {
+        "kind": "rescue_station",
+        "registration": "review_pin",
+        "review_item": 7,
+        "needs_confirmation": true,
+        "source_url": "https://www.google.com/maps?q=9.635966,-82.678099",
+        "position_approximate": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:rescue/review-08",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.718359,
+          9.643779
+        ]
+      },
+      "properties": {
+        "kind": "rescue_station",
+        "registration": "review_pin",
+        "review_item": 8,
+        "needs_confirmation": true,
+        "source_url": "https://www.google.com/maps?q=9.643779,-82.718359",
+        "position_approximate": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:medical/1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.766013,
+          9.654952
+        ]
+      },
+      "properties": {
+        "kind": "medical_station",
+        "registration": "review_screenshot",
+        "review_item": 11,
+        "needs_confirmation": true,
+        "number": "1",
+        "name": "Playa Negra"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:medical/2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.724335,
+          9.642844
+        ]
+      },
+      "properties": {
+        "kind": "medical_station",
+        "registration": "review_screenshot",
+        "review_item": 12,
+        "needs_confirmation": true,
+        "number": "2",
+        "name": "Chiquita Escondida review view"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:medical/3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.711325,
+          9.637925
+        ]
+      },
+      "properties": {
+        "kind": "medical_station",
+        "registration": "review_screenshot",
+        "review_item": 13,
+        "needs_confirmation": true,
+        "number": "3",
+        "name": "Near Casa Mandala"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:medical/4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.684498,
+          9.634375
+        ]
+      },
+      "properties": {
+        "kind": "medical_station",
+        "registration": "review_screenshot",
+        "review_item": 15,
+        "needs_confirmation": true,
+        "number": "4",
+        "name": "Near El Refugio Grill"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cg:place/casa-mandala",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.711094,
+          9.637925
+        ]
+      },
+      "properties": {
+        "kind": "location",
+        "registration": "review_screenshot",
+        "review_item": 14,
+        "needs_confirmation": true,
+        "name": "Casa Mandala",
+        "display_name": "Casa Mandala",
+        "category": "other"
+      }
+    }
+  ]
+}

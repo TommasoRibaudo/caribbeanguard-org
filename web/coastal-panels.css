@@ -1,21 +1,4 @@
 /* Local review: coastal forecast, beach overview and beach detail composition. */
-/* Loading retains the forecast's structure with a diffuse breathing wash.
-   Refreshing an existing forecast leaves its readings fully legible. */
-.forecast-loading{min-height:410px;display:flex;flex-direction:column;color:#526e78;font-size:14px;line-height:21px;overflow:hidden}
-.loading-tabs>span{flex:1;display:grid;place-items:center;min-height:44px;font-size:15px;border-radius:9px;color:#70858b}
-.loading-tabs>span.is-selected{background:#ffffffb3;color:#526e78;box-shadow:0 1px 4px #173b4806}
-.loading-trend{flex:1;display:flex;flex-direction:column;justify-content:space-between;min-height:190px}
-.loading-trend .loading-status{font-size:12px;line-height:18px;color:#70858b;white-space:nowrap}
-.loading-trend .trend-grid{stroke:#e9efed;stroke-width:1}
-.loading-plot-wash{animation:forecast-breathe 2.8s ease-in-out infinite}
-.loading-time-guides i,.loading-hours i{display:block;width:22px;height:1px;background:#d9e4e1}
-.loading-time-guides{min-height:16px;align-items:center}
-.loading-hourly-label{min-height:44px}
-.loading-hours{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;min-height:144px;padding:24px 16px 16px;background:#f6f9f7;border-top:1px solid #e3ebe8}
-.loading-hours>div{display:flex;flex-direction:column;align-items:center;gap:18px}
-.loading-hours strong{display:flex;align-items:baseline;gap:4px;font-size:25px;line-height:28px;font-weight:400;color:#91aaa9}
-.loading-hours strong small{font-size:12px;line-height:18px;color:#839b9c}
-@media(max-width:819px){.forecast-loading{min-height:448px}}
 .forecast-value-loading{position:relative;color:transparent!important}
 .forecast-value-loading small{visibility:hidden}
 .forecast-value-loading::after{content:'';position:absolute;left:0;top:50%;width:22px;height:2px;border-radius:2px;background:#91aaa9;animation:forecast-breathe 2.8s ease-in-out infinite}
@@ -33,13 +16,13 @@
 .toast.is-loading::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#4c9697;margin-right:8px;vertical-align:middle;animation:forecast-breathe 2.8s ease-in-out infinite}
 @keyframes forecast-breathe{50%{opacity:.45}}
 .forecast-refresh[aria-busy=true]{cursor:progress;opacity:.65}
-:is(.forecast-refresh,.hourly-tabs button,.sheet-back,.dock .card,.key-toggle){transition:background-color .16s ease,color .16s ease,opacity .16s ease}
-.hourly-tabs button:active,.sheet-back:active{background:#e5efec}
+:is(.forecast-refresh,.sheet-back,.dock .card,.key-toggle){transition:background-color .16s ease,color .16s ease,opacity .16s ease}
+.sheet-back:active{background:#e5efec}
 @media(prefers-reduced-motion:reduce){
- .loading-plot-wash,.forecast-value-loading::after{animation:none}
+ .forecast-value-loading::after{animation:none}
  .loading-value,.reference-media.is-loading::before,#locate.is-loading svg,#locate.is-loading::after,#locate-first.is-loading svg,.dockrow .rf.busy svg,#saved-txt.is-loading::after{animation:none}
  .toast.is-loading::before{animation:none}
- :is(.forecast-refresh,.hourly-tabs button,.sheet-back,.dock .card,.key-toggle){transition:none}
+ :is(.forecast-refresh,.sheet-back,.dock .card,.key-toggle){transition:none}
 }
 .dock,.forecast-page,.zone-detail,.legend-page,.info-page{--coast-ink:#173b48;--coast-muted:#526e78;--coast-rule:#dfe8e7;--coast-wash:#edf5f3}
 /* The overview reads in the same order at both sizes. */
@@ -49,13 +32,15 @@
 .dock .forecast{order:2;display:block;margin:0 24px 16px;padding:0;border:0;background:transparent}
 .dock .forecast-title{display:none}
 .dock #sea.forecast-summary{gap:0;padding:16px 16px 0;border-radius:16px;background:linear-gradient(135deg,#e7f2f0,#f3f7f5);box-shadow:inset 0 1px 0 #fff}
-.dock #sea .forecast-current{grid-template-columns:1.15fr 1fr 1fr;align-items:center;gap:12px}
+.dock #sea .forecast-current{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);align-items:start;gap:12px}
 .dock #sea .forecast-current>div+div{padding-left:12px;border-color:#cfdfdc}
 .dock #sea .forecast-current span{font-size:13px;line-height:20px;color:#47646e}
 .dock #sea .forecast-current strong{font-size:24px;line-height:32px;font-weight:500;letter-spacing:-.025em;color:var(--coast-ink)}
 .dock #sea .forecast-current strong small{font-size:12px;font-weight:400;letter-spacing:0}
 .dock #sea .summary-primary strong{font-size:38px;line-height:40px;letter-spacing:-.045em}
 .dock #sea .summary-primary strong small{font-size:16px}
+.dock #sea .summary-gust{font-size:12px;line-height:18px;color:#47646e}
+.dock #sea .summary-storm{margin:0 0 12px;padding:8px 10px;border-radius:8px;background:#fff3d6;color:#694419;font-size:13px;line-height:18px}
 .dock #sea .forecast-open{min-height:52px;margin-top:12px;border-top:1px solid #d4e3df;font-size:13px;line-height:20px;text-decoration:none}
 .dock #sea .forecast-open:hover{color:#0d4e61;text-decoration:none}
 .dock .list-heading{order:3;min-height:44px;padding:0 24px;border:0}
@@ -106,36 +91,193 @@
 :is(.coast-forecast,.beach-forecast) .advisory-compact .advisory-data{font-size:13px;margin:0 0 12px}
 :is(.coast-forecast,.beach-forecast) .swim-advisory.advisory-stop{padding:16px;background:#fbe9ec;border-color:#edccd2;color:#7d1426}
 :is(.coast-forecast,.beach-forecast) .advisory-stop .advisory-summary{font-size:14px;line-height:1.5}
-/* Full-day trend first; precise hourly values remain horizontally scrollable. */
+.forecast-page .coast-forecast > :is(.forecast-now,.swim-advisory,.rating-days){margin:0 0 16px}
+.forecast-page .coast-forecast > .rating-days{gap:8px}
+/* All three plots share the selected hour and a fixed reading column. */
 :is(.coast-forecast,.beach-forecast) .forecast-heading{align-items:center;margin-bottom:16px}
 :is(.coast-forecast,.beach-forecast) .forecast-heading h3{font-size:21px;line-height:28px;letter-spacing:-.025em;margin:0}
 :is(.coast-forecast,.beach-forecast) .forecast-period{font-size:13px;line-height:20px;margin:2px 0 0}
 :is(.coast-forecast,.beach-forecast) .forecast-refresh{font-size:13px;padding:0 0 0 8px;gap:6px}
-:is(.coast-forecast,.beach-forecast) .hourly-card{background:#fff;border:1px solid #dbe6e4;border-radius:18px;box-shadow:0 3px 14px #173b4805;padding:6px 0 10px}
-:is(.coast-forecast,.beach-forecast) .hourly-tabs{margin:0 6px;padding:3px;gap:2px;background:#edf3f1;border-radius:12px}
-:is(.coast-forecast,.beach-forecast) .hourly-tabs button{min-height:44px;font-size:14px;line-height:20px;border-radius:9px}
-.hourly-panel[hidden]{display:none}
-.forecast-trend{margin:0;padding:18px 16px 16px;color:#167790}
-.forecast-trend figcaption{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
-.trend-name{display:flex;align-items:center;gap:7px;font-size:13px;color:#526e78}
-.trend-name svg.cg-icon{width:25px;height:25px;color:#247f96}
-.forecast-trend figcaption strong{font-size:21px;font-weight:500;letter-spacing:-.03em;color:#173b48;font-variant-numeric:tabular-nums}
-.forecast-trend>svg{width:100%;height:auto;display:block;overflow:visible}
-.forecast-trend svg text{fill:#526e78;font:12px 'Source Sans 3',sans-serif}
-.trend-grid{fill:none;stroke:#dfe9e7;stroke-width:1}
-.trend-line{fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.trend-fill{fill:#d5eae8;opacity:.65;stroke:none}
-.trend-point{fill:currentColor;stroke:#fff;stroke-width:1.5}
-.trend-times{display:flex;justify-content:space-between;width:86%;margin-top:2px;color:#526e78;font-size:12px;line-height:18px;font-variant-numeric:tabular-nums}
-.trend-gap,.trend-empty{font-size:13px;color:#526e78;margin:8px 0 0}
-.trend-empty{padding:16px}
-:is(.coast-forecast,.beach-forecast) .hourly-scroll{padding:0 8px 8px;border-top:1px solid #e3ebe8;background:#f6f9f7}
-:is(.coast-forecast,.beach-forecast) .hourly-track li{width:80px;padding:12px 2px 4px}
-:is(.coast-forecast,.beach-forecast) .hourly-day{font-size:11px;line-height:16px;min-height:16px;margin-bottom:6px}
-:is(.coast-forecast,.beach-forecast) .hourly-track time{font-size:13px;line-height:20px;color:#526e78}
-:is(.coast-forecast,.beach-forecast) .hourly-track strong{font-size:22px;line-height:28px;margin-top:8px;letter-spacing:-.025em}
-:is(.coast-forecast,.beach-forecast) .hourly-track strong small{font-size:12px;line-height:18px}
-:is(.coast-forecast,.beach-forecast) .hourly-detail{font-size:12px;line-height:18px;margin-top:5px}
+.forecast-instrument {
+  --instrument-ink: #173b48;
+  --instrument-muted: #4d6974;
+  --instrument-accent: #136b80;
+  --instrument-rule: #dce8e7;
+  --instrument-wash: #eff6f5;
+  background: #fff;
+  border: 1px solid var(--instrument-rule);
+  border-radius: 16px;
+  color: var(--instrument-ink);
+  font-variant-numeric: tabular-nums;
+}
+.instrument-hour {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 12px 12px 9px;
+  background: var(--instrument-wash);
+  border-bottom: 1px solid var(--instrument-rule);
+  border-radius: 15px 15px 0 0;
+}
+.instrument-hour-value { min-width: 0 }
+.instrument-hour-value time { display: grid; gap: 2px }
+.instrument-hour-value [data-hour-day] {
+  color: var(--instrument-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.instrument-hour-value [data-hour-clock] {
+  color: var(--instrument-ink);
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -.045em;
+  line-height: 32px;
+}
+.instrument-stepper { display: flex; flex: none; gap: 6px }
+.instrument-stepper button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #ccdedd;
+  border-radius: 10px;
+  color: var(--instrument-accent);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.instrument-stepper button svg { width: 18px; height: 18px }
+.instrument-stepper [data-forecast-step="-1"] svg { rotate: 180deg }
+.instrument-stepper button:is(:disabled, [aria-disabled=true]) { opacity: .45; cursor: default }
+.instrument-stepper button:enabled:not([aria-disabled=true]):active { background: #dceeea }
+.instrument-stepper button:focus-visible,
+.instrument-timeline input:focus-visible {
+  outline: 2px solid var(--instrument-accent);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .instrument-stepper button:enabled:not([aria-disabled=true]):hover { background: #eaf4f2 }
+}
+.instrument-grid { padding-inline: 12px }
+.instrument-metric {
+  --instrument-series: #167488;
+  --instrument-fill: #e1f0ee;
+  display: grid;
+  grid-template-columns: minmax(76px, 28%) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 81px;
+  padding-block: 8px;
+}
+.instrument-metric + .instrument-metric { border-top: 1px solid var(--instrument-rule) }
+.instrument-metric[data-metric="wind"] { --instrument-series: #406b85; --instrument-fill: #e6eef3 }
+.instrument-metric[data-metric="gust"] { --instrument-series: #4d6888; --instrument-fill: #eaf0f6 }
+.instrument-reading {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+.instrument-metric-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--instrument-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+}
+.instrument-metric-name svg { flex: none; width: 17px; height: 17px; color: var(--instrument-series) }
+.instrument-reading [data-metric-value] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+  color: var(--instrument-ink);
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -.045em;
+  line-height: 27px;
+}
+.instrument-reading [data-metric-value] small { white-space: nowrap }
+.instrument-reading small {
+  color: var(--instrument-muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 15px;
+}
+.instrument-reading [data-metric-detail] { min-height: 15px }
+.instrument-plot { min-width: 0; color: var(--instrument-series) }
+.instrument-plot svg { display: block; width: 100%; height: auto; overflow: visible }
+.instrument-plot svg text {
+  fill: var(--instrument-muted);
+  font: 12px 'Source Sans 3', sans-serif;
+}
+.instrument-gridline { fill: none; stroke: #dce8e7; stroke-width: 1 }
+.instrument-fill { fill: var(--instrument-fill); stroke: none }
+.instrument-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.instrument-isolated { fill: currentColor }
+.instrument-cursor {
+  fill: none;
+  stroke: var(--instrument-accent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.instrument-dot { fill: var(--instrument-accent); stroke: #fff; stroke-width: 1.5 }
+.instrument-dot[hidden] { display: none }
+.instrument-plot .instrument-no-data {
+  margin: 0;
+  color: var(--instrument-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.instrument-timeline {
+  display: grid;
+  grid-column: 1 / -1;
+}
+.instrument-timeline label {
+  color: var(--instrument-ink);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 18px;
+}
+.instrument-timeline input[type=range] {
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  accent-color: var(--instrument-accent);
+  cursor: ew-resize;
+}
+.instrument-timeline input[type=range]:disabled { cursor: default }
+.instrument-times {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: -2px;
+  color: var(--instrument-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.instrument-loading[role=status],
+.forecast-instrument .instrument-source {
+  margin: 0;
+  color: var(--instrument-muted);
+  font-size: 12px;
+  line-height: 17px;
+}
+.forecast-instrument .instrument-source { padding: 0 12px 10px }
 :is(.coast-forecast,.beach-forecast) .forecast-details{margin-top:20px;padding-top:8px}
 :is(.coast-forecast,.beach-forecast) .forecast-details summary{font-size:14px;min-height:44px;display:flex;align-items:center;gap:8px}
 :is(.coast-forecast,.beach-forecast) .forecast-details p{font-size:14px;line-height:1.5}
@@ -198,7 +340,7 @@
 .sheet .zone-detail .beach-background p{font-size:14px;line-height:1.5}
 .sheet .zone-detail .beach-route{min-height:48px;font-size:15px;margin-top:18px;border-radius:12px}
 .sheet .zone-detail .sheet-foot{font-size:13px;line-height:1.5;margin-top:24px}
-.scroll-cue,.hourly-nav{display:none}
+.scroll-cue{display:none}
 .scroll-cue[hidden]{display:none!important}
 @media(max-width:819px){
  html,body,body *{scrollbar-width:none!important;scrollbar-gutter:auto!important}
@@ -207,13 +349,6 @@
  .scroll-cue{position:absolute;z-index:4;right:14px;bottom:12px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #d4e2de;border-radius:50%;background:#fffefa;color:#24778a;box-shadow:0 3px 12px #173b481a;cursor:pointer}
  .scroll-cue svg{width:18px;height:18px;rotate:90deg}
  .dock>.scroll-cue{bottom:calc(60px + var(--safe-pad))}
- .hourly-nav{display:flex;align-items:center;gap:2px;padding:0 8px 0 16px;background:#f6f9f7;border-top:1px solid #e3ebe8}
- .hourly-nav>span{flex:1;font-size:12px;color:#526e78}
- .hourly-nav button{display:grid;place-items:center;width:44px;height:44px;padding:0;background:transparent;border:0;border-radius:50%;color:#24778a}
- .hourly-nav button svg{width:18px;height:18px}
- .hourly-nav button[data-hourly-page='-1'] svg{rotate:180deg}
- .hourly-nav button:disabled{opacity:.25}
- :is(.coast-forecast,.beach-forecast) .hourly-scroll{border-top:0}
 }
 @media(max-width:369px){.sheet:has(.zone-detail) .sheet-body{padding-inline:20px}.sheet .zone-detail .statuscard{padding:16px}.sheet .zone-detail .statuscard .instr{font-size:23px}}
 .sheet .zone-detail .sheet-heading{margin:8px 0 24px}
@@ -242,6 +377,35 @@
 .sheet .beach-safety .advisory-expanded p,.sheet .beach-safety .advisory-expanded li{font-size:14px;line-height:1.5}
 .sheet .beach-safety .advisory-data{font-size:13px;margin:12px 0 0}
 .sheet .beach-safety .advisory-stop{margin:16px 0 0;border-radius:12px}
+.sheet .zone-detail .beach-safety[data-safety-rating]{
+ --safety-ink:var(--rating);
+ --safety-rule:color-mix(in srgb,var(--safety-ink) 22%,#fffefa);
+ padding:0;border:1px solid var(--safety-rule);border-radius:14px;
+ background:color-mix(in srgb,var(--safety-ink) 7%,#fffefa);
+ box-shadow:none;
+}
+.sheet .zone-detail .beach-safety.no-swim{--safety-ink:#8b2032;background:#fbefee}
+.sheet .zone-detail .beach-safety.no-swim .statuscard .instr{color:var(--safety-ink)}
+.sheet .zone-detail .beach-safety[data-safety-rating] .statuscard{padding:14px 16px}
+.sheet .zone-detail .beach-safety .statuscard>.eyebrow{display:none}
+.sheet .zone-detail .beach-safety .statuscard .instr{display:flex;gap:9px;align-items:flex-start;font-size:20px;line-height:24px;font-weight:700}
+.sheet .zone-detail .beach-safety .statuscard .instr::before{
+ content:'';flex:none;width:8px;height:8px;margin-top:8px;border-radius:50%;background:var(--safety-ink)
+}
+.sheet .zone-detail .beach-safety > :is(.beach-caution,.caveat,.safety-context){margin:0 16px 12px}
+.sheet .zone-detail .beach-safety > .advisory-stop{margin:0 12px 12px}
+.sheet .zone-detail .beach-safety .advisory-integrated .advisory-reasons{margin:0}
+.sheet .zone-detail .beach-safety .advisory-integrated summary{
+ min-height:44px;padding:0 16px;border-top-color:var(--safety-rule);border-radius:0 0 13px 13px;
+ color:#234e5a;font-weight:600;cursor:pointer;
+}
+.sheet .zone-detail .beach-safety .advisory-integrated summary:focus-visible{outline:2px solid #176a7b;outline-offset:-3px}
+.sheet .zone-detail .beach-safety .advisory-integrated summary:active{background:#173b4810}
+.sheet .zone-detail .beach-safety .advisory-integrated details[open] summary{border-radius:0}
+.sheet .zone-detail .beach-safety .advisory-integrated .advisory-expanded{padding:4px 16px 14px}
+@media(hover:hover) and (pointer:fine){
+ .sheet .zone-detail .beach-safety .advisory-integrated summary:hover{background:#173b480c}
+}
 .sheet .zone-detail .beach-help{margin-top:32px;padding-bottom:32px}
 .sheet .zone-detail .beach-help .escape{margin-bottom:16px}
 .sheet .zone-detail .area-forecast{margin-top:32px}
@@ -254,8 +418,6 @@
 :is(.coast-forecast,.beach-forecast) .forecast-details summary{display:flex;justify-content:space-between;gap:16px;min-height:56px;padding:16px 0;font-size:14px;line-height:21px;font-weight:600;color:#22677a;list-style:none;cursor:pointer}
 :is(.coast-forecast,.beach-forecast) .forecast-details summary::-webkit-details-marker{display:none}
 :is(.coast-forecast,.beach-forecast) .forecast-details p{margin:0 0 16px;font-size:14px;line-height:1.5}
-:is(.coast-forecast,.beach-forecast) .hourly-tabs{margin:2px 8px 0;padding:4px;gap:4px}
-:is(.coast-forecast,.beach-forecast) .hourly-tabs button{font-size:15px}
 @media(max-width:819px){.sheet:has(.zone-detail) .sheet-body{margin-top:40px}.sheet:has(.zone-detail) .sheet-expand::after{width:40px;height:4px}}
 @media(prefers-reduced-motion:reduce){.sheet .beach-safety summary svg,.sheet .forecast-details summary svg{transition:none}}
 

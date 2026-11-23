@@ -38,7 +38,7 @@ test('the unreviewed beach notice is outside the collapsed sources section and a
     const z={id:'test',at:[0,0],line:[],name:{en:'Beach',es:'Playa'},character:{class:'conditional',why:{en:'Context',es:'Contexto'},reviewed}};
     const noop=()=>{};
     runInNewContext(source+';openZone(z);',{
-      z,lang,T:{[lang]:{}},clearAccessPath:noop,tierOf:()=>'',statusCardInner:()=>'',
+      z,lang,T:{[lang]:{}},clearAccessPath:noop,tierOf:()=>'',statusCardInner:()=>'',ratingDetail:()=>'',ratingColor:()=>'',
       renderSwimAdvisory:()=>'',renderForecastPanel:()=>'',trustLine:()=>'',renderWeatherPanel:()=>'',
       reportHref:()=>'',sheetFoot:()=>'',openSheet:html=>{panel=html;},requestAnimationFrame:noop,
       fitZoneDetail:noop,markCurrent:noop,flyClear:noop,showBand:noop,sheetAddress:noop,localId:id=>id,

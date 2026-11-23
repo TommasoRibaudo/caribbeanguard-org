@@ -23,19 +23,86 @@ test('fallback rip arrows obey the same hazard switch when projected data is una
  assert.equal(parents[1],hazards);
 });
 
-test('reference-image pins yield to rescue and return when zoom separates them',()=>{
+test('all mapped danger bands appear before selection and update together without replacing geometry',()=>{
+ const data=JSON.parse(fs.readFileSync(new URL('../../web/data/coast-bands.geojson',import.meta.url),'utf8'));
+ const paths=[], dangerBands={};
+ let shorelines;
+ let status='baseline';
+ const ctx={data,bandZone:null,bandLayers:new Map(),BAND_PANE:'cgBandPane',
+  sourceLayers:{danger_bands:dangerBands},ratingDays:()=>[{status}],installBandShoreGap:lines=>{shorelines=lines;},
+  L:{geoJSON(feature,{style,interactive}){
+   const path={feature,style,interactive,setStyle(next){this.style=next;},addTo(group){
+    this.group=group;paths.push(this);return this;
+   }};
+   return path;
+  }}};
+ const danger=fs.readFileSync(new URL('../../web/danger.js',import.meta.url),'utf8');
+ const geometry=fs.readFileSync(new URL('../../web/geometry.js',import.meta.url),'utf8');
+ const functions=['bandStyle','restyleBands','drawBands','showBand','clearBand'].map(fn).join('\n');
+ vm.runInNewContext(danger+'\n'+geometry+'\n'+functions+'\ndrawBands(data);',ctx);
+ const expected=data.features.filter(feature=>feature.properties.kind==='band');
+ assert.deepEqual(paths.map(path=>path.feature),expected);
+ assert.equal(shorelines.length,expected.length);
+ for(const [index,band] of expected.entries()){
+  const id=band.properties.id;
+  const shore=Array.from(shorelines[index],point=>Array.from(point).reverse());
+  const offshore=data.features.find(feature=>feature.properties.id===id&&feature.properties.kind==='offshore');
+  assert.ok(shore.length>2);
+  assert.ok(shore.every(point=>band.geometry.coordinates[0].some(v=>String(v)===String(point))));
+  assert.ok(!shore.some(point=>offshore.geometry.coordinates.some(v=>String(v)===String(point))));
+ }
+ assert.ok(paths.every(path=>path.group===dangerBands && path.interactive===false && path.style.fillOpacity>0));
+ const ambientOpacity=paths[0].style.fillOpacity;
+ const puertoViejo=paths.find(path=>path.feature.properties.id==='cg:zone/salsa-brava');
+ vm.runInNewContext('showBand({id:"cg:zone/salsa-brava"});',ctx);
+ assert.ok(puertoViejo.style.fillOpacity>ambientOpacity);
+ assert.ok(paths.filter(path=>path!==puertoViejo).every(path=>path.style.fillOpacity===ambientOpacity));
+ status='storm';
+ vm.runInNewContext('restyleBands(); clearBand();',ctx);
+ assert.equal(puertoViejo.style.fillColor,ctx.CGDanger.colors[2]);
+ assert.ok(paths.every(path=>path.style.fillOpacity===ambientOpacity));
+ assert.deepEqual(paths.map(path=>path.feature),expected);
+});
+
+test('reference-image pins yield to rescue and medical stations and return when zoom separates them',()=>{
  const node=(kind,x)=>{const names=new Set([kind]),attributes=new Map();return {x,
   classList:{contains:key=>names.has(key),remove:key=>names.delete(key),toggle(key,on){on?names.add(key):names.delete(key);}},
-  getBoundingClientRect(){return {x:this.x,y:100,width:44,height:44};},querySelector:()=>null,
+  style:{setProperty(){}},
+  getBoundingClientRect(){return {x:this.x+(this.cgMedicalOffset?.x||0),y:100+(this.cgMedicalOffset?.y||0),width:44,height:44};},querySelector:()=>null,
   setAttribute:(key,value)=>attributes.set(key,value),getAttribute:key=>attributes.get(key)??null,removeAttribute:key=>attributes.delete(key)};};
- const rescue=node('projected-rescue',100),reference=node('rip-reference-marker',110);
+ const rescue=node('projected-rescue',100),medical=node('projected-medical',120),reference=node('rip-reference-marker',110);
+ medical.setAttribute('aria-label','Medical station 1');
  const ctx={markerLayoutFrame:0,requestAnimationFrame:callback=>{callback();return 0;},map:{eachLayer(){}},L:{Marker:class{}},
-  document:{querySelectorAll:()=>[rescue,reference]},lang:'en',placeBeachLabels(){}};
+  document:{querySelectorAll:()=>[rescue,medical,reference]},lang:'en',placeBeachLabels(){}};
  vm.runInNewContext(fs.readFileSync(new URL('../../web/geometry.js',import.meta.url),'utf8')+'\n'+fn('scheduleMarkerLayout')+';scheduleMarkerLayout();',ctx);
  assert.equal(reference.getAttribute('aria-hidden'),'true');assert.equal(reference.x,110);
+ assert.equal(medical.getAttribute('aria-hidden'),null);
+ assert.equal(medical.getAttribute('aria-label'),'Medical station 1');
+ assert.equal(medical.classList.contains('medical-offset'),true);assert.equal(medical.x,120);
+ assert.equal(rescue.getAttribute('aria-label'),'Rescue station');
  reference.x=220;
+ medical.x=230;
+ vm.runInNewContext('scheduleMarkerLayout();',ctx);
+ assert.equal(reference.getAttribute('aria-hidden'),'true');
+ assert.equal(medical.classList.contains('medical-offset'),false);
+ medical.x=310;
  vm.runInNewContext('scheduleMarkerLayout();',ctx);
  assert.equal(reference.getAttribute('aria-hidden'),null);assert.equal(reference.x,220);
+});
+test('the projected marker has its label when Leaflet fires add synchronously',()=>{
+ const added=[];
+ const ctx={sourceLayers:{medical:{}},map:{on(){},fire(){}},projectedDetail:[],lang:'en',
+  projectedNames:{medical_station:['Estación médica','Medical station']},sourceEsc:String,CGSymbols:{badge:()=>''},
+  L:{divIcon:options=>options,marker(coordinates,options){
+   const handlers={};
+   return {options,on(type,callback){handlers[type]=callback;return this;},
+    addTo(){handlers.add({target:this});return this;},
+    getElement(){return {setAttribute:(name,value)=>added.push({name,value,coordinates})};}};
+  }}};
+ const data={features:[{id:'test:medical',properties:{kind:'medical_station',number:1},geometry:{coordinates:[-82.7,9.6]}}]};
+ vm.runInNewContext(fn('medicalStationLabel')+'\n'+fn('drawProjectedAnnotations')+'\n'+'drawProjectedAnnotations(data);',{...ctx,data});
+ assert.equal(added[0].value,'Medical station 1');
+ assert.deepEqual(Array.from(added[0].coordinates),[9.6,-82.7]);
 });
 test('the visible Legend launcher opens the shared sheet rather than a capped separate tray',()=>{
  const toggle={},el={classList:classes(),setAttribute(){},querySelector:()=>toggle,querySelectorAll:()=>[],contains:()=>false};
@@ -63,7 +130,7 @@ test('closing a beach sheet retains its geographic highlight for the map view',(
 test('assessed and unassessed map labels use the same connected route as the beach list',()=>{
  const calls=[],labels=[{},{}],beaches=[{id:'known',character:{}},{id:'unknown'}];
  const ctx={zoneLabels:[labels[0]],unassessedLabels:[labels[1]],ZONES:[beaches[0]],UNASSESSED_BEACHES:[beaches[1]],
-  tappableLabel:(label,callback)=>label.open=callback,
+  track(){},tappableLabel:(label,callback)=>label.open=callback,
   navigateFromOverview:open=>{calls.push('route');open();},
   openZone:z=>calls.push(z.id),openUnassessedBeach:z=>calls.push(z.id)};
  const entry=source.includes('function openBeach(')?fn('openBeach'):source.match(/const openBeach=.*;/)[0];

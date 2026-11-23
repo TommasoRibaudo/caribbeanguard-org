@@ -41,7 +41,13 @@ if(window.parent!==window){
 }
 </script>`;
 // In the embedded copy, branding returns to the enclosing website.
+const candidateToken=process.env.NEXT_PUBLIC_CG_POSTHOG_PROJECT_TOKEN || '';
+const candidateRegion=process.env.NEXT_PUBLIC_CG_POSTHOG_REGION || '';
+const trackingEnabled=/^phc_[a-zA-Z0-9]{12,}$/.test(candidateToken) && ['us','eu'].includes(candidateRegion);
 const index=readFileSync(resolve(target,'index.html'),'utf8')
+ .replace('data-project-token="" data-region=""',trackingEnabled
+   ? `data-project-token="${candidateToken}" data-region="${candidateRegion}"`
+   : 'data-project-token="" data-region=""')
  // Vercel cleanUrls serves index.html at /mapa/app (without a slash).
  // Pin the asset directory before any relative styles, scripts or fetches.
  .replace('<head>', '<head>\n<base href="/mapa/app/">')
@@ -75,4 +81,6 @@ if(overviewPlaces.length!==7||overviewPlaces.some(p=>!p.at?.every(Number.isFinit
 writeFileSync(resolve(target,'overview-places.json'),JSON.stringify(overviewPlaces));
 mkdirSync(resolve(root,'site/public/brand'),{recursive:true});
 cpSync(resolve(web,'icons/caribbean-guard-logo.png'),resolve(root,'site/public/brand/caribbean-guard.png'));
+
+cpSync(resolve(web,'analytics.js'),resolve(root,'site/public/cg-analytics.js'));
 console.log(`Website assets prepared; ${assets.length} offline map references verified.`);

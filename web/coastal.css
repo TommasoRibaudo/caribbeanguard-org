@@ -929,13 +929,14 @@ body.map-overview .projected-marker .symbol.rescue_station{box-shadow:0 1px 4px 
 #map .leaflet-marker-pane .cg-icon{filter:none;--cg-symbol-ink:#087d87;overflow:hidden}
 #map .leaflet-marker-pane .cg-icon[data-tone=danger]{--cg-symbol-ink:#d83737}
 #map .leaflet-marker-pane .cg-icon[data-tone=rescue]{--cg-symbol-ink:#c64d2e}
+.cg-icon[data-tone=medical],#map .leaflet-marker-pane .cg-icon[data-tone=medical]{--cg-symbol-ink:#0d5d51}
 #map .leaflet-marker-pane .cg-icon[data-tone=muted]{--cg-symbol-ink:#687d82}
 /* All map hit boxes remain centered on source coordinates. Visible size is independent. */
 #map .projected-marker,#map .access-marker,#map .rip-reference-marker,#map .cg-gps-marker,
 #map .station-marker{--cg-marker-disc:32px;--cg-marker-glyph:24px;--cg-marker-paper:.84;display:grid;place-items:center;background:transparent;border:0;box-shadow:none}
 #map .projected-place{--cg-marker-disc:26px;--cg-marker-glyph:18px}
 #map .access-marker{--cg-marker-disc:30px;--cg-marker-glyph:22px}
-#map .projected-rescue,#map .station-marker{--cg-marker-disc:40px;--cg-marker-glyph:32px;--cg-marker-paper:.94}
+#map .projected-rescue,#map .projected-medical,#map .station-marker{--cg-marker-disc:40px;--cg-marker-glyph:32px;--cg-marker-paper:.94}
 #map .station-marker{width:44px;height:44px;transform:none}
 #map .cg-gps-marker{--cg-marker-disc:34px;--cg-marker-glyph:26px;position:absolute;isolation:isolate}
 #map .projected-marker .symbol,#map .station-marker .symbol,
@@ -951,7 +952,21 @@ body.map-overview .projected-marker .symbol.rescue_station{box-shadow:0 1px 4px 
 #map .cg-gps-marker::before{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:var(--cg-marker-disc);height:var(--cg-marker-disc);border-radius:50%;background:rgb(255 255 255 / .84);z-index:-1}
 #map .projected-number,#map .station-marker .number{top:0;right:0;min-width:18px;height:18px;box-sizing:border-box;padding:1px 3px;border-radius:9px;font:600 10px/16px Arial,sans-serif;background:#254451;box-shadow:0 0 0 1px white}
 #map .station-marker.planned .symbol{border:1px dashed #687d82}
-body.map-overview #map .projected-rescue,body.map-overview #map .station-marker{--cg-marker-disc:32px;--cg-marker-glyph:25px}
+body.map-overview #map .projected-rescue,body.map-overview #map .projected-medical,
+body.map-overview #map .station-marker{--cg-marker-disc:32px;--cg-marker-glyph:25px}
+/* Separate nearby station symbols. The dot marks the medical station's coordinates. */
+#map .projected-medical.medical-offset{translate:var(--medical-offset-x) var(--medical-offset-y)}
+#map .projected-medical.medical-offset::before,#map .projected-medical.medical-offset::after{
+ content:'';position:absolute;z-index:-1;pointer-events:none;background:#146650
+}
+#map .projected-medical.medical-offset::before{
+ top:calc(50% - 1px);left:50%;width:var(--medical-leader-length);height:2px;
+ transform-origin:left center;rotate:var(--medical-leader-angle);box-shadow:0 0 0 1px #fffe
+}
+#map .projected-medical.medical-offset::after{
+ top:calc(50% - var(--medical-offset-y));left:calc(50% - var(--medical-offset-x));width:6px;height:6px;
+ border:1px solid #fff;border-radius:50%;translate:-50% -50%
+}
 /* The red dashes move toward the open arrowhead. No secondary overlay. */
 @keyframes cg-rip-dashes{from{stroke-dashoffset:0}to{stroke-dashoffset:-14}}
 .cg-rip-dashes{animation:cg-rip-dashes 1.2s linear infinite;pointer-events:none}
@@ -1071,29 +1086,4 @@ body.map-overview #map .projected-rescue,body.map-overview #map .station-marker{
 .forecast-refresh svg.cg-icon path[opacity]{display:none}
 .forecast-refresh:hover{background:#eaf2f3}
 .coast-forecast .forecast-heading{border:0;padding-top:0;margin-bottom:14px}
-.hourly-card{background:#edf4f5;border:1px solid #e4edef;border-radius:16px;padding:6px 0 12px;overflow:hidden}
-.hourly-tabs{display:flex;gap:4px;margin:0 6px 6px;padding:3px;background:#e0ebee;border-radius:11px}
-.hourly-tabs button{flex:1;min-width:0;min-height:44px;padding:8px 6px;border:0;border-radius:8px;background:transparent;
- color:#43646f;font:inherit;font-size:12px;font-weight:500;cursor:pointer}
-.hourly-tabs button[aria-selected=true]{background:#fff;color:#173b48;box-shadow:0 1px 3px #173b4814;font-weight:600}
-.hourly-tabs button:focus-visible,.hourly-scroll:focus-visible{outline:2px solid #126780;outline-offset:-2px}
-.hourly-scroll{overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:thin;
- scrollbar-color:#b8cdd3 transparent;touch-action:pan-x pan-y;padding:0 8px 8px}
-.hourly-scroll[hidden]{display:none}
-.hourly-track{display:flex;list-style:none;margin:0;padding:0;width:max-content}
-.hourly-track li{display:flex;flex-direction:column;align-items:center;gap:0;flex:none;width:68px;padding:10px 2px 4px;scroll-snap-align:start;color:#244b59}
-.hourly-day{font-size:9px;line-height:14px;min-height:14px;color:#607b85;white-space:nowrap;margin-bottom:4px}
-.hourly-track time{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;line-height:18px}
-.hourly-symbol{display:grid;place-items:center;width:26px;height:26px;margin:12px 0;color:#208492;transform-origin:center}
-.hourly-symbol svg{width:26px;height:26px;fill:currentColor;stroke:none;scale:1}
-.hourly-track strong{font-size:19px;line-height:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#163c4b}
-.hourly-track strong small{display:block;text-align:center;font-size:10px;font-weight:400;line-height:16px;letter-spacing:0;color:#52717d}
-.hourly-detail{font-size:10px;line-height:16px;white-space:nowrap;margin-top:6px;color:#52717d}
 .sheet.panel-route .sheet-body{touch-action:pan-x pan-y}
-@media(prefers-reduced-motion:no-preference){.hourly-tabs button{transition:background-color .15s ease,color .15s ease}}
-
-/* Weather category silhouettes stay upright; direction belongs to the data label. */
-.hourly-symbol{width:32px;height:32px;margin:9px 0;color:#187cad}
-.hourly-symbol svg.cg-weather{width:32px;height:32px;color:inherit;fill:currentColor;stroke:none;filter:none}
-.hourly-symbol-wind{color:#527d91}
-.hourly-symbol-gust{color:#3f6c84}
