@@ -4,7 +4,14 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
 await import('../../web/danger.js');
+await import('../../web/forecast.js');
 const {beaches,score,outlook}=globalThis.CGDanger;
+const html=readFileSync(new URL('../../web/index.html',import.meta.url),'utf8').replace(/\r\n/g,'\n');
+const mapFunction=name=>{
+  const start=html.indexOf(`function ${name}(`);
+  assert.notEqual(start,-1,`${name} is defined in the map`);
+  return html.slice(start,html.indexOf('\n}\n',start)+3);
+};
 const now=Date.parse('2026-11-23T21:30:00Z')/1000;
 const hour=Math.floor(now/3600)*3600;
 const time=Array.from({length:33},(_,i)=>hour+i*3600);
@@ -26,20 +33,25 @@ test('regional elevation follows the local calendar and fresh named storm codes'
   assert.deepEqual(outlook(model,now,now).map(x=>x.status),['unknown','unknown']);
 });
 test('the map overview groups wind and gusts and only flags a forecast rating increase',()=>{
-  const html=readFileSync(new URL('../../web/index.html',import.meta.url),'utf8').replace(/\r\n/g,'\n');
-  const start=html.indexOf('function renderSea(');
-  const source=html.slice(start,html.indexOf('\n}\n',start)+3);
+  const source=['forecastReading','renderSea'].map(mapFunction).join('\n');
   const seaEl={};
   let status='baseline';
   const context={
     lang:'es',seaEl,seaData:{swell_wave_height:0.8},weatherData:{wind_speed_10m:10,wind_gusts_10m:14},forecastBusy:false,
-    CGForecast:{current:value=>value,format:value=>value??'-'},CGSymbols:{svg:()=>''},
+    CGForecast:{...globalThis.CGForecast,current:value=>value},CGSymbols:{svg:()=>''},
     ratingDays:()=>[{status}],forecastIsReading:Number.isFinite,loadingValue:value=>value
   };
   const render=()=>runInNewContext(source+'\nrenderSea();',context);
   render();
+  assert.match(seaEl.innerHTML, /0\.8 <small>m<\/small>/);
   assert.match(seaEl.innerHTML, /Viento[\s\S]+Ráfagas hasta 14 km\/h/);
   assert.doesNotMatch(seaEl.innerHTML, /rating-days|summary-storm/);
+  context.lang='en';
+  render();
+  assert.match(seaEl.innerHTML, /2\.6 <small>ft<\/small>/);
+  assert.match(seaEl.innerHTML, /Wind[\s\S]+Gusts up to 9 mph/);
+  assert.doesNotMatch(seaEl.innerHTML, /km\/h/);
+  context.lang='es';
   status='storm';
   render();
   assert.match(seaEl.innerHTML, /summary-storm[^>]*>Tormentas previstas/);
@@ -47,6 +59,29 @@ test('the map overview groups wind and gusts and only flags a forecast rating in
   context.weatherData={};
   render();
   assert.doesNotMatch(seaEl.innerHTML, /summary-gust|summary-storm/);
+});
+test('the language switches the ruler and beach distances without leaving a second scale',()=>{
+  const modes=new Set();
+  const context={
+    lang:'es',map:{},distOrigin:{you:false},
+    L:{control:{scale(options){
+      const mode=options.metric?'metric':'imperial';
+      assert.notEqual(options.metric,options.imperial);
+      return {options,addTo(){modes.add(mode);return this;},remove(){modes.delete(mode);}};
+    }}}
+  };
+  const distanceConstant=html.match(/^const METRES_PER_MILE = .+;$/m)?.[0];
+  const setup=[distanceConstant,'let scaleControl;',...['fmtDist','updateScale'].map(mapFunction)].join('\n');
+  runInNewContext(setup,context);
+  const readDistances=()=>Array.from(runInNewContext('updateScale(); [fmtDist(350), fmtDist(3300)];',context));
+  assert.deepEqual(readDistances(),['350 m','3,3 km']);
+  assert.deepEqual([...modes],['metric']);
+  context.lang='en';
+  assert.deepEqual(readDistances(),['1,100 ft','2.1 mi']);
+  assert.deepEqual([...modes],['imperial']);
+  context.lang='es';
+  assert.deepEqual(readDistances(),['350 m','3,3 km']);
+  assert.deepEqual([...modes],['metric']);
 });
 test('review dataset preserves the moved ID and distinguishes new fixture types',()=>{
   const load=name=>JSON.parse(readFileSync(new URL(`../../web/data/${name}`,import.meta.url),'utf8'));

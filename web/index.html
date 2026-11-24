@@ -878,9 +878,9 @@
     .leaflet-bottom.leaflet-left{bottom:0;left:360px}
   }
 </style>
-<link rel="stylesheet" href="coastal.css?v=82">
-<link rel="stylesheet" href="coastal-panels.css?v=82">
-<link rel="stylesheet" href="review.css?v=82">
+<link rel="stylesheet" href="coastal.css?v=83">
+<link rel="stylesheet" href="coastal-panels.css?v=83">
+<link rel="stylesheet" href="review.css?v=83">
 </head>
 <body>
 
@@ -998,16 +998,16 @@
      AFTER Leaflet and BEFORE this file. Stroke widths, dash ratios, the 40 m end
      shoreline strokes, rip arrows and label collision live in there now, so
      the card swatch and the map read ONE table instead of two copies. -->
-<script src="geometry.js?v=82"></script>
-<script src="panel-gesture.js?v=82"></script>
-<script src="forecast.js?v=82"></script>
-<script src="advisory.js?v=82"></script>
-<script src="danger.js?v=82"></script>
-<script src="analytics.js?v=82" data-surface="coastal_map" data-project-token="" data-region=""></script>
+<script src="geometry.js?v=83"></script>
+<script src="panel-gesture.js?v=83"></script>
+<script src="forecast.js?v=83"></script>
+<script src="advisory.js?v=83"></script>
+<script src="danger.js?v=83"></script>
+<script src="analytics.js?v=83" data-surface="coastal_map" data-project-token="" data-region=""></script>
 <!-- The lifeguard post clock, in Costa Rica time whatever the phone says. -->
-<script src="lifeguard.js?v=82"></script>
-<script src="symbols.js?v=82"></script>
-<script src="signposts.js?v=82"></script>
+<script src="lifeguard.js?v=83"></script>
+<script src="symbols.js?v=83"></script>
+<script src="signposts.js?v=83"></script>
 <script>document.body.insertAdjacentHTML("afterbegin",CGSymbols.haloDefinitions);</script>
 <script>
 /* ============================================================
@@ -1182,9 +1182,9 @@ const ZONES = [
       class:"no-swim",
       authored:"desk", reviewed:null,
       why:{es:"Ola de arrecife sobre coral vivo, a menos de 1 m bajo la superficie. Corta y golpea aunque el mar se vea en calma.",
-           en:"Reef break over live coral, less than 1 m below the surface. It cuts and it hits, even when the sea looks calm."},
+           en:"Reef break over live coral, less than 3.3 ft below the surface. It cuts and it hits, even when the sea looks calm."},
       facts:{es:["Prohibido nadar. Solo surfistas con experiencia","Arrecife a menos de 1 m bajo la superficie","Corriente de resaca en el canal del lado este"],
-             en:["No swimming. Experienced surfers only","Reef less than 1 m below the surface","Rip current in the channel on the east side"]}
+             en:["No swimming. Experienced surfers only","Reef less than 3.3 ft below the surface","Rip current in the channel on the east side"]}
     },
     today:null,
     /* GEOMETRY LIVES IN data/zones-geometry.json, not here, and it comes from
@@ -1559,7 +1559,7 @@ const T = {
       /* the coast this map does not describe, as a card in the picker */
       voidName:"El resto de la costa",
       voidStatus:"Sin describir",
-      voidWhy:(total,zoned,surveyed)=>`Este mapa cubre ${total} km de costa. Hay indicaciones para cinco tramos, que suman unos ${zoned} km. Playa Grande y Manzanillo aparecen como lugares, sin evaluación de seguridad. El mapa anotado de Caribbean Guard cubre ${surveyed} km. El resto de la costa sigue sin describir.`,
+      voidWhy:(total,zoned,surveyed)=>`Este mapa cubre ${total} de costa. Hay indicaciones para cinco tramos, que suman unos ${zoned}. Playa Grande y Manzanillo aparecen como lugares, sin evaluación de seguridad. El mapa anotado de Caribbean Guard cubre ${surveyed}. El resto de la costa sigue sin describir.`,
       voidRule:"Que no haya nada dibujado en un tramo no quiere decir que ese tramo sea seguro. Quiere decir que nadie lo ha mirado.",
       unassessedStatus:"Sin guía local revisada",
       unassessedWhy:"Aún no hay indicaciones de seguridad para nadar en esta playa.",
@@ -1732,14 +1732,14 @@ const T = {
       gapPartial:"Only part of this beach falls inside the stretch Caribbean Guard surveyed. Outside that stretch nothing is marked because nobody marked it.",
       voidName:"The rest of the coast",
       voidStatus:"Not described",
-      voidWhy:(total,zoned,surveyed)=>`This map covers ${total} km of coast. Five stretches have guidance, totaling about ${zoned} km. Playa Grande and Manzanillo are shown as places without a safety assessment. Caribbean Guard's annotated map covers ${surveyed} km. The remaining coast is not described.`,
+      voidWhy:(total,zoned,surveyed)=>`This map covers ${total} of coast. Five stretches have guidance, totaling about ${zoned}. Playa Grande and Manzanillo are shown as places without a safety assessment. Caribbean Guard's annotated map covers ${surveyed}. The remaining coast is not described.`,
       voidRule:"A stretch with nothing drawn on it is not a stretch that is safe. It is a stretch nobody has looked at.",
       unassessedStatus:"No reviewed local guidance",
       unassessedWhy:"No beach-specific swimming guidance has been reviewed here.",
       unassessedLocation:"The grey line is approximate: it does not mark the beach limits or a safe entry.",
       station:"Rescue Station",
       stationScope:"These four stations have detailed panels for the surveyed stretch. Other equipment symbols show locations from the 2026 map or pins supplied by AJ. AJ's pins were reported as installed; they do not confirm the equipment's contents or current availability.",
-      stationHolds:"A fixed structure holding rescue flotation: tubes and torpedoes, a 200 m rope box, a life ring, a vest and a whistle. If somebody is pulled out to sea, anyone nearby has something to help with.",
+      stationHolds:"A fixed structure holding rescue flotation: tubes and torpedoes, a 656 ft rope box, a life ring, a vest and a whistle. If somebody is pulled out to sea, anyone nearby has something to help with.",
       call:"Call 911", route:"Directions",
       locating:"Finding your location...",
       denied:"Turn on location on your phone to see where you are.",
@@ -2550,8 +2550,15 @@ map.on("zoomend", ()=>requestAnimationFrame(()=>requestAnimationFrame(placeBeach
    parallel to the beach" is advice that needs a sense of how far that is. */
 // Leaflet computes metres from the actual projection and zoom. A segmented,
 // horizontal ruler provides the familiar distance reference over imagery.
-L.control.scale({metric: true, imperial: false, position: "bottomleft",
-                 maxWidth: 112, updateWhenIdle:false}).addTo(map);
+let scaleControl;
+function updateScale(){
+  const metric = lang === 'es';
+  if(scaleControl?.options.metric === metric) return;
+  scaleControl?.remove();
+  scaleControl = L.control.scale({metric, imperial: !metric, position: 'bottomleft',
+                                   maxWidth: 112, updateWhenIdle:false}).addTo(map);
+}
+updateScale();
 
 /* Refit on anything that changes the viewport, debounced.
 
@@ -3512,14 +3519,20 @@ function openZone(z){
 function openVoid(){
   const render = ()=>{
     const t = T[lang];
-    const km = m => (m / 1000).toFixed(m < 3000 ? 2 : 1);
+    const es = lang === 'es';
+    const coverage = metres => {
+      const distance = metres / (es ? 1000 : METRES_PER_MILE);
+      const digits = distance < 3 ? 2 : 1;
+      const value = distance.toLocaleString(es ? 'es-CR' : 'en-US', {minimumFractionDigits:digits, maximumFractionDigits:digits});
+      return `${value} ${es ? 'km' : 'mi'}`;
+    };
     const total = map.distance([9.646, IMG_BOUNDS[0][1]], [9.646, IMG_BOUNDS[1][1]]);
     const zoned = zonedExtentM();
     const surveyed = map.distance([9.643, SURVEY.w], [9.643, SURVEY.e]);
     return `
     <h2 id="sheet-title" tabindex="-1">${t.voidName}</h2>
     <div class="info-summary info-warning"><strong>${t.voidStatus}</strong><p>${t.voidRule}</p></div>
-    <section class="info-section"><h3>${lang==='es'?'Cobertura del mapa':'Map coverage'}</h3><p>${t.voidWhy(km(total), km(zoned), km(surveyed))}</p></section>
+    <section class="info-section"><h3>${es?'Cobertura del mapa':'Map coverage'}</h3><p>${t.voidWhy(coverage(total), coverage(zoned), coverage(surveyed))}</p></section>
     <p class="defer">${t.defer}</p>
     <div class="actions">
       <a class="btn" href="${reportHref(t.reportSubject)}">${t.report}</a>
@@ -3657,7 +3670,7 @@ function drawProvisionalTargets(){
       .on('click',()=>openBeach(z)));
   });
 }
-fetch('data/coast-bands.geojson')
+fetch('data/coast-bands.geojson?v=83')
   .then(r=>r.ok?r.json():Promise.reject(r.status))
   .then(drawBands)
   .catch(error=>{console.warn('[cg] coast bands did not load:',error);say(T[lang].bandFailed,60000);});
@@ -3705,7 +3718,7 @@ function openPost(p){
     <h2 id="sheet-title" tabindex="-1">${p.name[lang]}</h2>
     ${rescueStatus(p.proposed)}
     <section class="info-section rescue-record"><h3>${lang==='es'?'Equipo reportado':'Reported equipment'}</h3>
-      ${p.proposed ? `<p>${lang==='es'?'No es una estación operativa confirmada.':'This is not a confirmed operating station.'}</p>` : `<ul class="rescue-equipment"><li>${lang==='es'?'Tubos y torpedos de rescate':'Rescue tubes & torpedoes'}</li><li>${lang==='es'?'Caja de mecate · 200 m':'Rope box · 200 m'}</li><li>${lang==='es'?'Salvavidas, chaleco y silbato':'Life ring, vest & whistle'}</li></ul><div class="rescue-schedule"><span>${lang==='es'?'Horario reportado':'Reported schedule'}</span><p>${p.hours[lang]}</p></div>`}
+      ${p.proposed ? `<p>${lang==='es'?'No es una estación operativa confirmada.':'This is not a confirmed operating station.'}</p>` : `<ul class="rescue-equipment"><li>${lang==='es'?'Tubos y torpedos de rescate':'Rescue tubes & torpedoes'}</li><li>${lang==='es'?'Caja de mecate · 200 m':'Rope box · 656 ft'}</li><li>${lang==='es'?'Salvavidas, chaleco y silbato':'Life ring, vest & whistle'}</li></ul><div class="rescue-schedule"><span>${lang==='es'?'Horario reportado':'Reported schedule'}</span><p>${p.hours[lang]}</p></div>`}
       ${!p.proposed ? `<a class="btn info-route" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${p.ll.join(',')}"><span>${t.route}</span>${CGSymbols.svg('next')}</a>` : ''}
     </section>
     <details class="info-details"><summary><span>${lang==='es'?'Ver fuentes y revisión':'View sources & review'}</span>${CGSymbols.svg('next')}</summary>
@@ -4032,6 +4045,7 @@ function buildPicker(){
    instead of adding a caption above the beach list. */
 const DIST_DEFAULT = {ll:[9.65670, -82.75450], you:false};
 const DIST_OUT_OF_RANGE_M = 25000;
+const METRES_PER_MILE = 1609.344;
 let distOrigin = DIST_DEFAULT;
 function beachPoints(id){
   const z = ZONES.find(x => x.id === id) || UNASSESSED_BEACHES.find(x => x.id === id);
@@ -4046,9 +4060,17 @@ function nearestM(from, pts){
 function fmtDist(m){
   const es = lang === "es";
   if(distOrigin.you && m < 150) return es ? "Aquí" : "Here";
+  if(!es){
+    if(m < METRES_PER_MILE){
+      const feet = Math.max(100, Math.round(m / 0.3048 / 100) * 100);
+      return `${feet.toLocaleString('en-US')} ft`;
+    }
+    const miles = m / METRES_PER_MILE;
+    return `${miles < 10 ? miles.toFixed(1) : Math.round(miles)} mi`;
+  }
   if(m < 1000) return `${Math.max(50, Math.round(m / 50) * 50)} m`;
   const km = m < 10000 ? (m / 1000).toFixed(1) : String(Math.round(m / 1000));
-  return `${es ? km.replace(".", ",") : km} km`;
+  return `${km.replace(".", ",")} km`;
 }
 function renderDistances(){
   const es = lang === "es";
@@ -4317,6 +4339,7 @@ function setLang(l){
   lang=l;
   const t = T[l];
   document.documentElement.lang=l;
+  updateScale();
   updateCoastalLabels();
   document.getElementById("btn-es").setAttribute("aria-pressed",l==="es");
   document.getElementById("btn-en").setAttribute("aria-pressed",l==="en");
@@ -5032,6 +5055,10 @@ function weatherCondition(code){
 function loadingValue(value,pending){
   return pending&&value==='-'?`<span class="loading-value" role="status" aria-label="${lang==='es'?'Cargando':'Loading'}"><span aria-hidden="true">-</span></span>`:value;
 }
+function forecastReading(value,key){
+  const display = CGForecast.measure(value,key,lang);
+  return {text:CGForecast.format(display.value,'',display.digits),unit:display.unit};
+}
 function renderWeatherPanel(){
   const t = T[lang], c = weatherData;
   const valid = c && Number.isFinite(c.time) &&
@@ -5040,13 +5067,15 @@ function renderWeatherPanel(){
   const at = valid ? new Date(c.time * 1000).toLocaleTimeString(
     lang === "es" ? "es-CR" : "en-GB",
     {timeZone:"America/Costa_Rica",hour:"2-digit",minute:"2-digit"}) : "";
+  const air = forecastReading(c?.temperature_2m,'air');
+  const wind = forecastReading(c?.wind_speed_10m,'wind');
   const metric = (label, value) => `<div><span>${label}</span><strong>${loadingValue(value,forecastBusy)}</strong></div>`;
   return `<section class="sheet-weather" aria-label="${t.weatherTitle}">
     <div class="weather-head"><span class="eyebrow">${t.weatherTitle}</span>
       <span class="weather-time">${valid ? `${t.weatherModel} · ${at} CR` : t.weatherModel}</span></div>
     ${valid ? `<div class="weather-metrics">
-      ${metric(t.weatherAir, Math.round(c.temperature_2m) + "°C")}
-      ${metric(t.weatherWind, Math.round(c.wind_speed_10m) + " km/h")}
+      ${metric(t.weatherAir, air.text + air.unit)}
+      ${metric(t.weatherWind, `${wind.text} ${wind.unit}`)}
       ${metric(t.weatherHumidity, Math.round(c.relative_humidity_2m) + "%")}
     </div><p class="weather-foot">${weatherCondition(c.weather_code)} · ${t.weatherScope}
       <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>`
@@ -5132,18 +5161,18 @@ function refreshBeachRatings(){
 }
 
 function renderSea(){
-  const es=lang==='es', marine=CGForecast.current(seaData), wind=CGForecast.current(weatherData),f=CGForecast.format;
-  const gust=wind?.wind_gusts_10m;
-  const gustDetail=forecastIsReading(gust)
-    ? `<small class="summary-gust">${es?'Ráfagas hasta':'Gusts up to'} ${f(gust,'')} km/h</small>` : '';
+  const es=lang==='es', marine=CGForecast.current(seaData), wind=CGForecast.current(weatherData);
+  const gust=forecastReading(wind?.wind_gusts_10m,'gust');
+  const gustDetail=forecastIsReading(wind?.wind_gusts_10m)
+    ? `<small class="summary-gust">${es?'Ráfagas hasta':'Gusts up to'} ${gust.text} ${gust.unit}</small>` : '';
   const stormNotice=ratingDays()[0].status==='storm'
     ? `<p class="summary-storm">${es?'Tormentas previstas en la costa. El nivel de peligro sube un punto, hasta 5.':'Coastal thunderstorms forecast. Danger ratings rise one level, up to 5.'}</p>` : '';
-  const metric=(label,value,unit,primary=false,detail='')=>`<div class="${primary?'summary-primary':''}"><span>${label}</span><strong>${loadingValue(value,forecastBusy)} <small>${unit}</small></strong>${detail}</div>`;
+  const metric=(label,{text,unit},primary=false,detail='')=>`<div class="${primary?'summary-primary':''}"><span>${label}</span><strong>${loadingValue(text,forecastBusy)} <small>${unit}</small></strong>${detail}</div>`;
   seaEl.hidden=false;
   seaEl.className='sea forecast-summary';
   seaEl.innerHTML=`<div class="forecast-current">
-    ${metric(es?'Oleaje':'Swell',f(marine?.swell_wave_height,'',1),'m',true)}
-    ${metric(es?'Viento':'Wind',f(wind?.wind_speed_10m,''),'km/h',false,gustDetail)}
+    ${metric(es?'Oleaje':'Swell',forecastReading(marine?.swell_wave_height,'swell'),true)}
+    ${metric(es?'Viento':'Wind',forecastReading(wind?.wind_speed_10m,'wind'),false,gustDetail)}
     </div><button class="forecast-open" data-forecast>${es?'Pronóstico costero · 24 horas':'Coastal forecast · 24 hours'}${CGSymbols.svg('external')}</button>${stormNotice}`;
 }
 function direction(value){return Number.isFinite(value)?seaDir(value):'-';}
@@ -5214,9 +5243,9 @@ function renderSwimAdvisory(beachId,compact=false,integrated=false){
   </section>`;
 }
 const forecastMetrics = [
-  {key:'swell',es:'Oleaje',en:'Swell',unit:'m',digits:1},
-  {key:'wind',es:'Viento',en:'Wind',unit:'km/h',digits:0},
-  {key:'gust',es:'Ráfagas',en:'Gusts',unit:'km/h',digits:0}
+  {key:'swell',es:'Oleaje',en:'Swell'},
+  {key:'wind',es:'Viento',en:'Wind'},
+  {key:'gust',es:'Ráfagas',en:'Gusts'}
 ];
 // All three traces use one time axis and a separate zero-based scale for their units.
 const forecastPlotX = fraction => (5 + 173 * fraction).toFixed(2);
@@ -5226,16 +5255,17 @@ const forecastTimestamp = row => new Date(row.time * 1000).toISOString();
 let selectedForecastTime;
 
 function forecastMetricReading(row,metric){
-  const {key,unit,digits}=metric;
-  const value=forecastIsReading(row[key]) ? CGForecast.format(row[key],'',digits) : null;
+  const {key}=metric;
+  const {text,unit}=forecastReading(row[key],key);
+  const available=forecastIsReading(row[key]);
   const from=key==='swell'?row.swellFrom:key==='wind'?row.windFrom:null;
   const parts=[
     ...(key==='swell'&&forecastIsReading(row.period)?[CGForecast.format(row.period,' s')]:[]),
     ...(Number.isFinite(from)?[direction(from)]:[])
   ];
   return {
-    value:value===null?'-':`${value} <small>${unit}</small>`,
-    detail:value===null?(lang==='es'?'Sin datos':'No data'):parts.join(' · ')
+    value:available?`${text} <small>${unit}</small>`:'-',
+    detail:available?parts.join(' · '):(lang==='es'?'Sin datos':'No data')
   };
 }
 function renderForecastPlot(rows,metric,trend,ceiling,index,loading){
@@ -5252,11 +5282,12 @@ function renderForecastPlot(rows,metric,trend,ceiling,index,loading){
       <path class="instrument-line" d="${line}"/>`;
   }).join('');
   const cursorX=forecastPlotX(index/(rows.length-1));
-  const value=rows[index][metric.key],hasValue=forecastIsReading(value);
-  const scale=CGForecast.format(ceiling,'',metric.digits);
+  const {value,unit,digits}=CGForecast.measure(rows[index][metric.key],metric.key,lang);
+  const hasValue=forecastIsReading(value);
+  const scale=CGForecast.format(ceiling,'',digits);
   const label=lang==='es'
-    ? `${metric.es}, escala de 0 a ${scale} ${metric.unit}.${trend.missing?' Hay horas sin datos.':''}`
-    : `${metric.en}, scale from 0 to ${scale} ${metric.unit}.${trend.missing?' Some hours have no data.':''}`;
+    ? `${metric.es}, escala de 0 a ${scale} ${unit}.${trend.missing?' Hay horas sin datos.':''}`
+    : `${metric.en}, scale from 0 to ${scale} ${unit}.${trend.missing?' Some hours have no data.':''}`;
   return `<svg viewBox="0 0 216 72" role="img" aria-label="${label}" data-ceiling="${ceiling}">
     ${grid}
     ${traces}
@@ -5267,7 +5298,7 @@ function renderForecastPlot(rows,metric,trend,ceiling,index,loading){
 }
 function renderForecastInstrument(rows,loading=false){
   const es=lang==='es', index=CGForecast.hourIndex(rows,selectedForecastTime),row=rows[index],last=rows.length-1;
-  const trends=Object.fromEntries(forecastMetrics.map(({key})=>[key,CGForecast.trend(rows,key)]));
+  const trends=Object.fromEntries(forecastMetrics.map(({key})=>[key,CGForecast.trend(rows,key,lang)]));
   const windCeiling=Math.max(trends.wind?.ceiling??0,trends.gust?.ceiling??0);
   const step=(value,label,atBoundary)=>`<button type="button" data-forecast-step="${value}" aria-label="${label}"
     aria-disabled="${loading||atBoundary}" ${loading?'disabled':''}>${CGSymbols.svg('next')}</button>`;
@@ -5328,7 +5359,8 @@ function selectForecastHour(card,index){
     const cursor=plot.querySelector('.instrument-cursor'),dot=plot.querySelector('.instrument-dot');
     cursor.setAttribute('x1',cursorX);
     cursor.setAttribute('x2',cursorX);
-    const value=row[metric.key],hasValue=forecastIsReading(value);
+    const {value}=CGForecast.measure(row[metric.key],metric.key,lang);
+    const hasValue=forecastIsReading(value);
     dot.toggleAttribute('hidden',!hasValue);
     if(hasValue){
       dot.setAttribute('cx',cursorX);
@@ -5343,12 +5375,12 @@ function renderForecastPanel(beachId='',coast=false){
     CGForecast.freshHourly(windHourly,windFetchedAt,now),now);
   const available=rows.some(row=>forecastMetrics.some(metric=>forecastIsReading(row[metric.key])));
   const marine=CGForecast.current(seaData),wind=CGForecast.current(weatherData);
-  const metric=(label,value,unit,detail,primary=false)=>`<div class="${primary?'forecast-primary':'forecast-secondary'}"><span>${primary?CGSymbols.svg('forecast-swell'):''}${label}</span><strong>${loadingValue(f(value,'',unit==='m'?1:0),forecastBusy)} <small>${unit}</small></strong>${detail?`<p>${detail}</p>`:''}</div>`;
+  const metric=(label,{text,unit},detail,primary=false)=>`<div class="${primary?'forecast-primary':'forecast-secondary'}"><span>${primary?CGSymbols.svg('forecast-swell'):''}${label}</span><strong>${loadingValue(text,forecastBusy)} <small>${unit}</small></strong>${detail?`<p>${detail}</p>`:''}</div>`;
   const current=coast?`<section class="forecast-now" aria-label="${es?'Pronóstico actual':'Current forecast'}">
     <h3>${es?'Pronóstico actual':'Current forecast'}</h3><div class="forecast-now-grid">
-    ${metric(es?'Oleaje':'Swell',marine?.swell_wave_height,'m',marine?f(marine.swell_wave_period,' s')+' · '+direction(marine.swell_wave_direction):'',true)}
-    ${metric(es?'Viento':'Wind',wind?.wind_speed_10m,'km/h',wind?direction(wind.wind_direction_10m):'')}
-    ${metric(es?'Ráfagas':'Gusts',wind?.wind_gusts_10m,'km/h','')}
+    ${metric(es?'Oleaje':'Swell',forecastReading(marine?.swell_wave_height,'swell'),marine?f(marine.swell_wave_period,' s')+' · '+direction(marine.swell_wave_direction):'',true)}
+    ${metric(es?'Viento':'Wind',forecastReading(wind?.wind_speed_10m,'wind'),wind?direction(wind.wind_direction_10m):'')}
+    ${metric(es?'Ráfagas':'Gusts',forecastReading(wind?.wind_gusts_10m,'gust'),'')}
     </div></section>`:'';
   return `<section class="area-forecast ${coast?'coast-forecast':'beach-forecast'}" data-variant="${coast?'coast':'detail'}" data-beach="${sourceEsc(beachId||'')}" aria-label="${es?'Pronóstico de oleaje y viento':'Swell and wind forecast'}">
     ${current}${coast?renderSwimAdvisory(beachId,true)+ratingOutlook():''}
@@ -5662,12 +5694,15 @@ renderSaved();
     const [lat,lon]=q.get('review').split(',').map(Number);
     if(lat>=9.5 && lat<=9.8 && lon>=-83 && lon<=-82.5){
       Promise.all([geomReady,featureReviewReady]).then(([,features])=>{
-        if(features.has(q.get('mark'))) openSourceFeature(features.get(q.get('mark')));
+        const feature=features.get(q.get('mark'));
+        if(feature) openSourceFeature(feature);
         map.stop();
         const point=[lat,lon];
         flyClear(L.latLngBounds([point]),{maxZoom:TILE_BOUNDS.contains(point)?17.75:14.25});
-        L.marker([lat,lon],{interactive:false,keyboard:false,zIndexOffset:1400,
-          icon:L.divIcon({className:'review-pin',iconSize:[44,44],iconAnchor:[22,22]})}).addTo(map);
+        if(feature){
+          L.marker(point,{interactive:false,keyboard:false,zIndexOffset:1400,
+            icon:L.divIcon({className:'review-pin',iconSize:[44,44],iconAnchor:[22,22]})}).addTo(map);
+        }
       });
     }
   }

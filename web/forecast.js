@@ -2,6 +2,17 @@
 (function (root) {
   'use strict';
   const finite = value => typeof value === 'number' && Number.isFinite(value);
+  const measurements = {
+    swell: {metric:'m', imperial:'ft', digits:1, convert:value=>value / 0.3048},
+    wind: {metric:'km/h', imperial:'mph', digits:0, convert:value=>value / 1.609344},
+    air: {metric:'°C', imperial:'°F', digits:0, convert:value=>value * 9 / 5 + 32}
+  };
+  function measure(value, key, lang = 'es') {
+    const {metric, imperial, digits, convert} = measurements[key === 'gust' ? 'wind' : key];
+    const english = lang === 'en';
+    const displayed = finite(value) ? (english ? convert(value) : value) : null;
+    return {value:displayed, unit:english ? imperial : metric, digits};
+  }
   function current(value, now = Date.now() / 1000) {
     return value && finite(value.time) && value.time <= now + 3600 && now - value.time <= 10800 ? value : null;
   }
@@ -37,9 +48,10 @@
     return Math.max(0, Math.min(rows.length - 1, Math.round((selectedTime - rows[0].time) / 3600)));
   }
   // A zero-based plot. Missing hours split paths; never imply a measured bridge.
-  function trend(rows,key){
-    const valid=r=>finite(r.time)&&finite(r[key])&&r[key]>=0;
-    const values=rows.filter(valid).map(r=>r[key]);
+  function trend(rows,key,lang='es'){
+    const readings=rows.map(row=>measure(row[key],key,lang).value);
+    const valid=(r,i)=>finite(r.time)&&finite(readings[i])&&readings[i]>=0;
+    const values=readings.filter((_,i)=>valid(rows[i],i));
     if(!values.length)return null;
     const min=Math.min(...values),max=Math.max(...values);
     const raw=Math.max(max,key==='swell'?.2:1)/3;
@@ -49,12 +61,13 @@
     const times=rows.map(r=>r.time).filter(finite),start=Math.min(...times),end=Math.max(...times);
     const segments=[];let segment=[];
     rows.forEach((r,i)=>{
-      if(!valid(r)){if(segment.length)segments.push(segment);segment=[];return;}
+      if(!valid(r,i)){if(segment.length)segments.push(segment);segment=[];return;}
       if(segment.length&&r.time-rows[i-1].time!==3600){segments.push(segment);segment=[];}
-      segment.push({time:r.time,value:r[key],x:end===start?.5:(r.time-start)/(end-start),y:1-r[key]/ceiling});
+      const value=readings[i];
+      segment.push({time:r.time,value,x:end===start?.5:(r.time-start)/(end-start),y:1-value/ceiling});
     });
     if(segment.length)segments.push(segment);
     return {min,max,ceiling,start,end,segments,missing:rows.length-values.length};
   }
-  root.CGForecast = {current, rows, hourlyRows, freshHourly, format, time, clock, day, hourIndex, trend};
+  root.CGForecast = {current, rows, hourlyRows, freshHourly, format, measure, time, clock, day, hourIndex, trend};
 })(typeof window === 'undefined' ? globalThis : window);
