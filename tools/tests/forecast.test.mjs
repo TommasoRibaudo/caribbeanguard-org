@@ -43,6 +43,20 @@ test('forecast aligns by timestamps, preserves zero and leaves missing data empt
   assert.equal(forecast.format(null,' m'), '-');
   assert.equal(forecast.format(0,' m',1), '0.0 m');
 });
+test('English readings and chart axes convert the same model values without mutating them',()=>{
+  const rows=[{time:3600,swell:0.9,gust:12},{time:7200,swell:null,gust:16}];
+  const reading=forecast.measure(rows[0].swell,'swell','en');
+  assert.equal(forecast.format(reading.value,` ${reading.unit}`,reading.digits),'3.0 ft');
+  assert.deepEqual(forecast.measure(12,'gust','es'),{value:12,unit:'km/h',digits:0});
+  assert.equal(forecast.measure(0,'air','en').value,32);
+  assert.equal(forecast.measure(null,'swell','en').value,null);
+  const english=forecast.trend(rows,'swell','en');
+  assert.equal(english.max,reading.value);
+  assert.equal(english.segments[0][0].value,reading.value);
+  assert.equal(english.missing,1);
+  assert.equal(forecast.trend(rows,'swell','es').max,0.9);
+  assert.equal(rows[0].swell,0.9);
+});
 test('missing or expired series do not reuse an old forecast', () => {
   assert.ok(forecast.rows({time:[0],swell_wave_height:[1]}, null, 90000).every(row => row.swell === null));
 });

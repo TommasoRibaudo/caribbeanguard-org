@@ -89,6 +89,24 @@ test('reference-image pins yield to rescue and medical stations and return when 
  vm.runInNewContext('scheduleMarkerLayout();',ctx);
  assert.equal(reference.getAttribute('aria-hidden'),null);assert.equal(reference.x,220);
 });
+
+test('the Playa Negra hatch reaches the reviewed location at its northwest cap',()=>{
+ const {features}=JSON.parse(fs.readFileSync(new URL('../../web/data/coast-bands.geojson',import.meta.url),'utf8'));
+ const playaNegra=features.filter(feature=>feature.properties.id==='cg:zone/playa-negra');
+ const cap=playaNegra.find(feature=>feature.properties.side==='west').geometry.coordinates;
+ const band=playaNegra.find(feature=>feature.properties.kind==='band').geometry.coordinates[0];
+ const offshore=playaNegra.find(feature=>feature.properties.kind==='offshore').geometry.coordinates;
+ const reviewed=[-82.77498,9.66099];
+ const [shore,sea]=cap;
+ const at=(reviewed[0]-shore[0])/(sea[0]-shore[0]);
+ assert.ok(at>0 && at<1);
+ assert.ok(Math.abs(shore[1]+at*(sea[1]-shore[1])-reviewed[1])<0.00003);
+ assert.deepEqual(offshore[0],sea);
+ const capStart=band.findIndex(point=>point[0]===shore[0] && point[1]===shore[1]);
+ assert.ok(capStart>=0);
+ assert.deepEqual(band[capStart+1],sea);
+});
+
 test('the projected marker has its label when Leaflet fires add synchronously',()=>{
  const added=[];
  const ctx={sourceLayers:{medical:{}},map:{on(){},fire(){}},projectedDetail:[],lang:'en',

@@ -8,6 +8,9 @@ const assets=runInNewContext(sw.slice(0,sw.indexOf('async function put('))+'\nCR
 test('a new document cannot boot with unversioned application assets from an older offline cache',()=>{
  const urls=[...html.matchAll(/(?:src|href)="([^"/]+\.(?:js|css)(?:\?[^"]*)?)"/g)].map(m=>m[1]);
  assert.ok(urls.length>=8);
+ const bandData=html.match(/fetch\('([^']*coast-bands\.geojson[^']*)'\)/)?.[1];
+ assert.ok(bandData,'the hatch data has a versioned fetch');
+ urls.push(bandData);
  const version=sw.match(/const CACHE = "cg-map-v(\d+)/)[1];
  for(const url of urls){
   assert.equal(new URL(url,'https://map.test/').searchParams.get('v'),version,url);
